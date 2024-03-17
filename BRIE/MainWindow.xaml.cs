@@ -6,7 +6,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using Microsoft.Win32;
 
 namespace BRIE
@@ -46,14 +45,19 @@ namespace BRIE
 
         private void LoadGeoJson()
         {
-            foreach (Rectangle rect in geoJson.GetRects())
-            {
-                roadsCanvas.Children.Add(rect);
-            }
+            //foreach (System.Windows.Shapes.Rectangle rect in geoJson.GetRects())
+            //{
+            //    roadsCanvas.Children.Add(rect);
+            //}
 
-            foreach (Polyline pline in geoJson.GetPolys())
+            //foreach (Polyline pline in geoJson.GetPolys())
+            //{
+            //    linesCanvas.Children.Add(pline);
+            //}
+
+            foreach (System.Windows.Shapes.Path path in geoJson.GetPaths())
             {
-                linesCanvas.Children.Add(pline);
+                linesCanvas.Children.Add(path);
             }
         }
 

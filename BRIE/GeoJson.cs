@@ -197,49 +197,113 @@ namespace BRIE
                 Polyline poly = new Polyline();
                 poly.Stroke = Brushes.Black;
                 poly.StrokeThickness = 1;
-                PointCollection points = new PointCollection();
+                PointCollection Points = new PointCollection();
 
                 bool ignore = ignoreIds.Contains(feature.Properties.ID) || feature.Properties.Highway == null;
 
                 if (!ignore)
                 {
-                    foreach (var Coordinates in feature.Geometry.Coordinates)
-                    {
-
-
-                        Coordinates.ForEach(c =>
-                        {
-
-                            double longitude = c[0];
-                            double latitude = c[1];
-                            double? heigh = c.Count == 3 ? c[2] : null;
-
-
-                            double normalLat = latitude - minLat;
-                            double normalLong = longitude - minLong;
-
-                            double metersLong = LongitudeToMeters(normalLong);
-                            double metersLat = LatitudeToMeters(normalLat);
-
-
-
-                            double scaledX = metersLong * scaleX;
-                            double scaledY = metersLat * scaleY;
-
-                            scaledY = (scaledY * -1) + MapSize;
-
-                            points.Add(new Point(scaledX, scaledY));
-                        });
-                    }
-
-
+                    feature.Geometry.GetPointsCollections(this).ForEach(lp => lp.ToList().ForEach(p => Points.Add(p)));
                 }
 
-                poly.Points = points;
+                poly.Points = Points;
                 Polys.Add(poly);
             }
 
             return Polys;
+        }
+
+        public List<Path> GetPaths()
+        {
+            List<Path> Paths = new List<Path>();
+            Path path = new Path();
+
+            SetSizes();
+
+            foreach (Feature feature in Features)
+            {
+                string osm = feature.Properties.Osm_id;
+                if (osm == "972309200")
+                {
+                    var b = "tbm nao sei mano";
+                }
+                bool ignore = ignoreIds.Contains(feature.Properties.ID) || feature.Properties.Highway == null;
+
+                if (!ignore)
+                {
+
+                    path = new Path();
+                    List<PointCollection> geoPoints = feature.Geometry.GetPointsCollections(this);
+
+                    PathGeometry pG = new PathGeometry();
+
+                    foreach (PointCollection pC in geoPoints)
+                    {
+                        PathFigure pf = new PathFigure();
+                        pf.StartPoint = pC[0]; // Set the start point of the PathFigure
+
+                        if (pC.Count >= 3)
+                        {
+                            PolyBezierSegment pbs = new PolyBezierSegment();
+                            pbs.Points = pC;
+                            pf.Segments.Add(pbs);
+                        }
+                        else if (pC.Count == 2)
+                        {
+                            LineSegment ls = new LineSegment();
+                            ls.Point = pC[1];
+
+                            PathSegmentCollection psc = new PathSegmentCollection();
+                            psc.Add(ls);
+
+                            pf.Segments = psc;
+                        }
+                        else
+                        {
+                            string alala = "sei lá mano";
+                        }
+
+
+
+                        // Add the PathFigure to the PathGeometry
+                        pG.Figures.Add(pf);
+                    }
+
+
+
+                    path.Data = pG;
+                    path.Stroke = Brushes.Black;
+                    path.StrokeThickness = 2;
+
+
+                    ToolTip ttp = new ToolTip();
+                    ttp.Content = feature.Properties.Osm_id + "\n" + feature.Properties.Name;
+                    path.ToolTip = ttp;
+
+                    path.IsMouseDirectlyOverChanged += (sender, e) =>
+                    {
+                        if ((bool)e.NewValue == true)
+                        {
+                            (sender as Path).Stroke = Brushes.Red;
+                            (sender as Path).StrokeThickness = 3;
+                        }
+                        else
+                        {
+
+                            (sender as Path).Stroke = Brushes.Black;
+                            (sender as Path).StrokeThickness = 2;
+                        }
+                    };
+                    path.MouseDown += (sender, e) =>
+                    {
+                        Clipboard.SetText(feature.Properties.Osm_id);
+                    };
+
+                    Paths.Add(path);
+                }
+            }
+            
+            return Paths;
         }
 
         private void MinMax()
@@ -344,12 +408,12 @@ namespace BRIE
         public string Type { get; set; }
         public List<List<List<double>>> Coordinates { get; set; }
 
-        public List<List<Point>> GetPoints(GeoJson geoJson)
+        public List<PointCollection> GetPointsCollections(GeoJson geoJson)
         {
-            var points = new List<List<Point>>();
+            List<PointCollection> points = new List<PointCollection>();
             foreach (var C in Coordinates)
             {
-                var point = new List<Point>();
+                PointCollection pointColl = new PointCollection();
                 foreach (var c in C)
                 {
                     double longitude = c[0];
@@ -370,9 +434,9 @@ namespace BRIE
 
                     scaledY = (scaledY * -1) + geoJson.MapSize;
 
-                    point.Add(new Point(scaledX, scaledY));
+                    pointColl.Add(new Point(scaledX, scaledY));
                 }
-                points.Add(point);
+                points.Add(pointColl);
             }
             return points;
         }

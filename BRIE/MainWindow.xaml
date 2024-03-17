@@ -77,7 +77,7 @@
                         <Canvas x:Name="siCanvas"    Width="2048" Height="2048" Background="Transparent"/>
                         <Canvas x:Name="hmCanvas"    Width="2048" Height="2048" Background="Transparent"/>
                         <Canvas x:Name="roadsCanvas" Width="2048" Height="2048" Background="Transparent"/>
-                        <Canvas x:Name="linesCanvas" Width="2048" Height="2048" Background="Transparent"/>
+                        <Canvas x:Name="linesCanvas" Width="2048" Height="2048"/>
                     </Canvas>
                 </Grid>
             </ScrollViewer>
