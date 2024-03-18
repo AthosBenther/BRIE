@@ -37,6 +37,8 @@
                         <ComboBoxItem Selected="CanvasSize_Selected" Tag="4096">4096</ComboBoxItem>
                         <ComboBoxItem Selected="CanvasSize_Selected" Tag="8196">8196</ComboBoxItem>
                     </ComboBox>
+                    <Slider x:Name="minHmod" Margin="8 2" Minimum="-10" ValueChanged="mod_ValueChanged"/>
+                    <Slider x:Name="maxHmod" Margin="8 2" Minimum="-10" ValueChanged="mod_ValueChanged"/>
 
                 </StackPanel>
                 <StackPanel Margin="8" Grid.Column="2">

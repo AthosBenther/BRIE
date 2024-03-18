@@ -24,11 +24,13 @@ namespace BRIE
         {
             InitializeComponent();
 
-
+            //Save16BitImage();
 
             drawingCanvas.SizeChanged += DrawingCanvas_SizeChanged;
 
-            string file = "C:\\Users\\athum\\AppData\\Local\\BeamNG.drive\\0.31\\levels\\franka-mini\\google\\RoadsWithHeigths.geojson";
+            string file = @"C:\Users\athum\AppData\Local\BeamNG.drive\0.31\levels\franka-mini\google\RoadsWithHeigths.geojson";
+
+            loadHeightmap(@"C:\Users\athum\AppData\Local\BeamNG.drive\0.31\levels\franka-mini\height_source.png");
 
             geoJson = new GeoJson(file, drawingCanvas);
 
@@ -45,20 +47,22 @@ namespace BRIE
 
         private void LoadGeoJson()
         {
-            //foreach (System.Windows.Shapes.Rectangle rect in geoJson.GetRects())
-            //{
-            //    roadsCanvas.Children.Add(rect);
-            //}
+
+            roadsCanvas.Children.Clear();
+            foreach (System.Windows.Shapes.Rectangle rect in geoJson.GetRects())
+            {
+                roadsCanvas.Children.Add(rect);
+            }
 
             //foreach (Polyline pline in geoJson.GetPolys())
             //{
             //    linesCanvas.Children.Add(pline);
             //}
 
-            foreach (System.Windows.Shapes.Path path in geoJson.GetPaths())
-            {
-                linesCanvas.Children.Add(path);
-            }
+            //foreach (System.Windows.Shapes.Path path in geoJson.GetPaths())
+            //{
+            //    linesCanvas.Children.Add(path);
+            //}
         }
 
         public static void ExportToPng(Canvas canvas, string filePath)
@@ -131,11 +135,19 @@ namespace BRIE
             if (openFileDialog.ShowDialog() == true)
             {
                 // Load the selected PNG file as the canvas background
-                Uri uri = new Uri(openFileDialog.FileName);
+                loadHeightmap(openFileDialog.FileName);
+            }
+        }
+
+        private void loadHeightmap(string path)
+        {
+            if (!String.IsNullOrEmpty(path))
+            {
+                Uri uri = new Uri(path);
                 BitmapImage bitmap = new BitmapImage(uri);
 
                 hmCanvas.Background = new ImageBrush(bitmap);
-                txtHm.Text = openFileDialog.FileName.Split("\\").Last<string>();
+                txtHm.Text = path.Split("\\").Last<string>();
             }
         }
 
@@ -146,12 +158,19 @@ namespace BRIE
 
             if (openFileDialog.ShowDialog() == true)
             {
-                // Load the selected PNG file as the canvas background
-                Uri uri = new Uri(openFileDialog.FileName);
+                loadSatMap(openFileDialog.FileName);
+            }
+        }
+
+        private void loadSatMap(string path)
+        {
+            if (!String.IsNullOrEmpty(path))
+            {
+                Uri uri = new Uri(path);
                 BitmapImage bitmap = new BitmapImage(uri);
 
                 siCanvas.Background = new ImageBrush(bitmap);
-                txtSi.Text = openFileDialog.FileName.Split("\\").Last<string>();
+                txtSi.Text = path.Split("\\").Last<string>();
             }
         }
 
@@ -208,6 +227,26 @@ namespace BRIE
             canvas.Visibility = isVisible ? Visibility.Collapsed : Visibility.Visible;
             source.Foreground = isVisible ? Brushes.Red : Brushes.Black;
             source.Content = isVisible ? "\xE738" : "\xE7B3";
+        }
+
+        private void mod_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            Slider slider = (sender as Slider);
+
+            if (slider.Name == "minHmod")
+            {
+                geoJson.minAscHM = e.NewValue;
+            }
+            else
+            {
+                geoJson.maxAscHM = e.NewValue;
+            }
+
+            ToolTip toolTip = new ToolTip();
+            toolTip.Content = e.NewValue.ToString();
+            slider.ToolTip = toolTip;
+
+            LoadGeoJson();
         }
     }
 }

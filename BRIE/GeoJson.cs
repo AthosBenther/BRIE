@@ -32,9 +32,22 @@ namespace BRIE
         //public double minQgisH = 921.62616;
         //public double maxQgisH = 1005.696167;
 
-        public double minQgisH = 489;
-        public double maxQgisH = 1302;
-        public double diffQgisH = 0;
+        public double minQgisH = 921.62616;
+        public double maxQgisH = 1005.696167;
+        public double diffQgisH = 84.070007;
+
+        public double minAscH0 = 923.74810791015625;
+        public double minAscHM = 0;
+        public double minAscH = 0;
+
+        public double maxAscH0 = 1005.6961669921875;
+        public double maxAscHM = 0;
+        public double maxAscH = 0;
+
+        public double diffAscH = 0;
+
+
+        public double roadWidth = 10;
 
         public List<int> ignoreIds = new List<int> { -1, 5, 6 };
 
@@ -66,6 +79,14 @@ namespace BRIE
             MapSize = (int)Canvas.Height;
             scaleX = MapSize / diffLongM;
             scaleY = MapSize / diffLatM;
+
+            minAscH = minAscH0 + minAscHM;
+            maxAscH = maxAscH0 + maxAscHM;
+
+            minAscH = minAscH0;
+            maxAscH = maxAscH0;
+
+            diffAscH = maxAscH - minAscH;
         }
 
         public List<Rectangle> GetRects()
@@ -114,11 +135,20 @@ namespace BRIE
 
                         for (int i = 0; i < Points.Count - 1; i++)
                         {
+                            //Point p1 = new Point(Points[i][0], Points[i][1]);
+                            //double p1h = Points[i][2];
+                            //double scaledP1h = (p1h - minQgisH) / diffQgisH;
+                            //Point p2 = new Point(Points[i + 1][0], Points[i + 1][1]);
+                            //double scaledP2h = (Points[i + 1][2] - minQgisH) / diffQgisH;
+
                             Point p1 = new Point(Points[i][0], Points[i][1]);
                             double p1h = Points[i][2];
-                            double normalP1h = (p1h - minQgisH) / diffQgisH;
+                            double normalP1h = p1h - minAscH;
+                            double scaledP1h = normalP1h / (diffAscH);
                             Point p2 = new Point(Points[i + 1][0], Points[i + 1][1]);
-                            double normalP2h = (Points[i + 1][2] - minQgisH) / diffQgisH;
+                            double p2h = Points[i + 1][2];
+                            double normalP2h = p2h - minAscH;
+                            double scaledP2h = normalP2h / (diffAscH);
 
 
                             // Calculate the length of the segment
@@ -136,7 +166,7 @@ namespace BRIE
                             // Create the rectangle
                             Rectangle rectangle = new Rectangle
                             {
-                                Width = 10,
+                                Width = roadWidth,
                                 Height = length
                             };
 
@@ -148,18 +178,19 @@ namespace BRIE
                             double y = center.Y - length / 2;
 
                             // Set the position of the rectangle
+
                             Canvas.SetLeft(rectangle, p1.X);
                             Canvas.SetTop(rectangle, p1.Y);
 
                             LinearGradientBrush gradientBrush = new LinearGradientBrush();
 
                             Color color1 = new Color();
-                            color1.A = 255;
-                            color1.ScR = color1.ScG = color1.ScB = (float)normalP1h;
+                            color1.ScA = float.MaxValue;
+                            color1.ScR = color1.ScG = color1.ScB = (float)scaledP1h;
 
                             Color color2 = new Color();
-                            color2.A = 255;
-                            color2.ScR = color2.ScG = color2.ScB = (float)normalP2h;
+                            color2.ScA = float.MaxValue;
+                            color2.ScR = color2.ScG = color2.ScB = (float)scaledP2h;
 
                             // Define gradient stops
                             gradientBrush.GradientStops.Add(new GradientStop(color1, 0.0));
@@ -169,7 +200,7 @@ namespace BRIE
                             rectangle.Fill = gradientBrush;
 
                             ToolTip ttp = new ToolTip();
-                            ttp.Content = feature.Properties.Osm_id + "\n" + feature.Properties.Name;
+                            ttp.Content = feature.Properties.Osm_id + "\n" + scaledP1h + "\n" + feature.Properties.Name;
                             rectangle.ToolTip = ttp;
 
 
@@ -302,7 +333,7 @@ namespace BRIE
                     Paths.Add(path);
                 }
             }
-            
+
             return Paths;
         }
 
