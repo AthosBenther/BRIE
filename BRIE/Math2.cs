@@ -3,7 +3,7 @@ using System.Windows;
 
 namespace BRIE
 {
-    internal class Math2
+    public static class Math2
     {
         public static double DegreesToRadians(double degrees)
         {
@@ -31,5 +31,20 @@ namespace BRIE
             double dy = p2.Y - p1.Y;
             return Math.Sqrt(dx * dx + dy * dy);
         }
+
+        public static class Trigonometry
+        {
+            public static class RightTriangle
+            {
+                public static Point GetCatheti(double hipotenuse, double angleDegrees)
+                {
+                    double angleRadians = angleDegrees * Math.PI / 180.0;
+                    double x = hipotenuse * Math.Cos(angleRadians);
+                    double y = hipotenuse * Math.Sin(angleRadians);
+                    return new Point(x, y);
+                }
+            }
+        }
+
     }
 }

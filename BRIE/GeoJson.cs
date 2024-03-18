@@ -89,9 +89,9 @@ namespace BRIE
             diffAscH = maxAscH - minAscH;
         }
 
-        public List<Rectangle> GetRects()
+        public List<Shape> getRoads()
         {
-            List<Rectangle> rectangles = new List<Rectangle>();
+            List<Shape> shapes = new List<Shape>();
 
             SetSizes();
 
@@ -161,7 +161,8 @@ namespace BRIE
                             Point center = Math2.getPointsCenter(p1, p2);
 
                             // Create a rotation transform
-                            RotateTransform rotation = new RotateTransform(angle - 90);
+                            angle -= 90;
+                            RotateTransform rotation = new RotateTransform(angle);
 
                             // Create the rectangle
                             Rectangle rectangle = new Rectangle
@@ -170,17 +171,34 @@ namespace BRIE
                                 Height = length
                             };
 
-                            // Apply rotation to the rectangle
-                            rectangle.RenderTransform = rotation;
-
-                            // Calculate the position of the rectangle
-                            double x = center.X - rectangle.Width / 2;
-                            double y = center.Y - length / 2;
+                            Ellipse ellipse = new Ellipse
+                            {
+                                Width = roadWidth,
+                                Height = roadWidth
+                            };
 
                             // Set the position of the rectangle
 
-                            Canvas.SetLeft(rectangle, p1.X);
-                            Canvas.SetTop(rectangle, p1.Y);
+                            // Apply rotation to the rectangle
+                            rectangle.RenderTransform = rotation;
+                            //ellipse.RenderTransform = rotation;
+
+                            Point origin = Math2.Trigonometry.RightTriangle.GetCatheti(roadWidth, angle);
+                            Point rectOrigin = new Point(p1.X - (origin.X / 2), p1.Y - (origin.Y / 2));
+                            Point elliOrigin = new Point(
+                                p1.X - roadWidth / 2,
+                                p1.Y - roadWidth / 2
+                                );
+
+                            Canvas.SetLeft(rectangle, rectOrigin.X);
+                            Canvas.SetTop(rectangle, rectOrigin.Y);
+
+                            Canvas.SetLeft(ellipse, elliOrigin.X);
+                            Canvas.SetTop(ellipse, elliOrigin.Y);
+                            
+
+                            //Canvas.SetLeft(rectangle, p1.X);
+                            //Canvas.SetTop(rectangle,  p1.Y);
 
                             LinearGradientBrush gradientBrush = new LinearGradientBrush();
 
@@ -188,33 +206,57 @@ namespace BRIE
                             color1.ScA = float.MaxValue;
                             color1.ScR = color1.ScG = color1.ScB = (float)scaledP1h;
 
+                            Color color18 = new Color();
+                            color18.A = byte.MaxValue;
+                            color18.R = color18.G = color18.B = (byte)(scaledP1h * byte.MaxValue);
+
                             Color color2 = new Color();
                             color2.ScA = float.MaxValue;
                             color2.ScR = color2.ScG = color2.ScB = (float)scaledP2h;
 
+                            Color color28 = new Color();
+                            color28.A = byte.MaxValue;
+                            color28.R = color28.G = color28.B = (byte)(scaledP2h * byte.MaxValue);
+
                             // Define gradient stops
-                            gradientBrush.GradientStops.Add(new GradientStop(color1, 0.0));
-                            gradientBrush.GradientStops.Add(new GradientStop(color2, 1.0));
+                            gradientBrush.GradientStops.Add(new GradientStop(color18, 0.0));
+                            gradientBrush.GradientStops.Add(new GradientStop(color28, 1.0));
 
                             // Set the rectangle's fill to the gradient brush
                             rectangle.Fill = gradientBrush;
+                            ellipse.Fill = new SolidColorBrush(color18);
 
-                            ToolTip ttp = new ToolTip();
-                            ttp.Content = feature.Properties.Osm_id + "\n" + scaledP1h + "\n" + feature.Properties.Name;
-                            rectangle.ToolTip = ttp;
+                            ToolTip rttp = new ToolTip();
+                            rttp.Content = "OSM ID: " + feature.Properties.Osm_id + "\n";
+                            rttp.Content += "Position: X" + Canvas.GetLeft(rectangle) + ", Y" + Canvas.GetTop(rectangle) + "\n";
+                            rttp.Content += "Gray: " + scaledP1h + "\n";
+                            rttp.Content += feature.Properties.Name;
+                            rectangle.ToolTip = rttp;
+
+                            ToolTip ettp = new ToolTip();
+                            ettp.Content = "OSM ID: " + feature.Properties.Osm_id + "\n";
+                            ettp.Content += "Position: X" + Canvas.GetLeft(rectangle) + ", Y" + Canvas.GetTop(rectangle) + "\n";
+                            ettp.Content += "Gray: " + scaledP1h + "\n";
+                            ettp.Content += feature.Properties.Name;
+                            ellipse.ToolTip = ettp;
 
 
                             rectangle.MouseEnter += (sender, e) => { (sender as Rectangle).Fill = Brushes.Red; };
                             rectangle.MouseLeave += (sender, e) => { (sender as Rectangle).Fill = gradientBrush; };
                             rectangle.MouseDown += (sender, e) => { Clipboard.SetText(((sender as Rectangle).ToolTip as ToolTip).Content as string); };
 
-                            rectangles.Add(rectangle);
+                            ellipse.MouseEnter += (sender, e) => { (sender as Ellipse).Fill = Brushes.Red; };
+                            ellipse.MouseLeave += (sender, e) => { (sender as Ellipse).Fill = gradientBrush; };
+                            ellipse.MouseDown += (sender, e) => { Clipboard.SetText(((sender as Ellipse).ToolTip as ToolTip).Content as string); };
+
+                            shapes.Add(rectangle);
+                            shapes.Add(ellipse);
                         }
                     }
                 }
             }
 
-            return rectangles;
+            return shapes;
         }
 
         public List<Polyline> GetPolys()
@@ -420,7 +462,7 @@ namespace BRIE
     public class Properties
     {
         public string Osm_id { get; set; }
-        public object Name { get; set; }
+        public string Name { get; set; }
         public string Highway { get; set; }
         public object Waterway { get; set; }
         public object Aerialway { get; set; }

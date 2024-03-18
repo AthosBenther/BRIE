@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -6,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 using Microsoft.Win32;
 
 namespace BRIE
@@ -34,13 +36,19 @@ namespace BRIE
 
             geoJson = new GeoJson(file, drawingCanvas);
 
+
+
             LoadGeoJson();
 
             roadsCanvas.Loaded += (a, b) =>
             {
-
+                //Thread.Sleep(10000);
                 ExportToPng(roadsCanvas, "C:\\Users\\athum\\AppData\\Local\\BeamNG.drive\\0.31\\levels\\franka-mini\\roadsele.png");
+            };
 
+            hmCanvas.Loaded += (a, b) =>
+            {
+                ExportToPng(hmCanvas, "C:\\Users\\athum\\AppData\\Local\\BeamNG.drive\\0.31\\levels\\franka-mini\\hmele.png");
             };
 
         }
@@ -49,20 +57,26 @@ namespace BRIE
         {
 
             roadsCanvas.Children.Clear();
-            foreach (System.Windows.Shapes.Rectangle rect in geoJson.GetRects())
+
+            List<Shape> roads = geoJson.getRoads();
+            List<Ellipse> ellis = roads.OfType<Ellipse>().ToList();
+            List<Rectangle> rects = roads.OfType<Rectangle>().ToList();
+            foreach (Shape road in ellis)
             {
-                roadsCanvas.Children.Add(rect);
+                roadsCanvas.Children.Add(road);
+            }
+            foreach (Shape road in rects)
+            {
+                roadsCanvas.Children.Add(road);
             }
 
+            linesCanvas.Children.Clear();
             //foreach (Polyline pline in geoJson.GetPolys())
             //{
             //    linesCanvas.Children.Add(pline);
             //}
 
-            //foreach (System.Windows.Shapes.Path path in geoJson.GetPaths())
-            //{
-            //    linesCanvas.Children.Add(path);
-            //}
+            //ExportToPng(roadsCanvas, "C:\\Users\\athum\\AppData\\Local\\BeamNG.drive\\0.31\\levels\\franka-mini\\roadsele.png");
         }
 
         public static void ExportToPng(Canvas canvas, string filePath)
@@ -77,18 +91,34 @@ namespace BRIE
 
             // Create a PngBitmapEncoder and add the RenderTargetBitmap to it
             PngBitmapEncoder encoder = new PngBitmapEncoder();
-            encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
 
-            // Save the encoded image to the file
-            using (FileStream fs = File.Create(filePath))
+            // Create a MemoryStream to hold the encoded image data
+            using (MemoryStream memoryStream = new MemoryStream())
             {
-                encoder.Save(fs);
+                // Add the RenderTargetBitmap to the encoder
+                encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
+
+                // Save the encoded image to the memory stream
+                encoder.Save(memoryStream);
+
+                // Reset the memory stream position to the beginning
+                memoryStream.Seek(0, SeekOrigin.Begin);
+
+                // Create a new PNG encoder with maximum compression level (lossless)
+                PngBitmapEncoder losslessEncoder = new PngBitmapEncoder();
+                losslessEncoder.Frames.Add(BitmapFrame.Create(memoryStream));
+
+                // Save the lossless encoded image to the file
+                using (FileStream fs = File.Create(filePath))
+                {
+                    losslessEncoder.Save(fs);
+                }
             }
         }
 
         private void DrawingCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            if (e.NewSize.Height != e.PreviousSize.Height)
+            if (e.NewSize.Height != e.PreviousSize.Height && e.PreviousSize.Height != 0)
             {
                 Canvas canvas = (Canvas)sender;
                 int h = (int)canvas.Height;
