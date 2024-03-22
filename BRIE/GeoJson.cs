@@ -195,7 +195,7 @@ namespace BRIE
 
                             Canvas.SetLeft(ellipse, elliOrigin.X);
                             Canvas.SetTop(ellipse, elliOrigin.Y);
-                            
+
 
                             //Canvas.SetLeft(rectangle, p1.X);
                             //Canvas.SetTop(rectangle,  p1.Y);
@@ -293,6 +293,7 @@ namespace BRIE
 
             SetSizes();
 
+            List<int> q = new List<int>();
             foreach (Feature feature in Features)
             {
                 string osm = feature.Properties.Osm_id;
@@ -301,6 +302,7 @@ namespace BRIE
                     var b = "tbm nao sei mano";
                 }
                 bool ignore = ignoreIds.Contains(feature.Properties.ID) || feature.Properties.Highway == null;
+
 
                 if (!ignore)
                 {
@@ -312,22 +314,28 @@ namespace BRIE
 
                     foreach (PointCollection pC in geoPoints)
                     {
+                        q.Add(pC.Count);
                         PathFigure pf = new PathFigure();
                         pf.StartPoint = pC[0]; // Set the start point of the PathFigure
 
                         if (pC.Count >= 3)
                         {
-                            PolyBezierSegment pbs = new PolyBezierSegment();
-                            pbs.Points = pC;
-                            pf.Segments.Add(pbs);
+                            for (int i = 1; i < pC.Count - 1; i++)
+                            {
+                                QuadraticBezierSegment qbs = new QuadraticBezierSegment(pC[i], pC[i + 1], true);
+                                pf.Segments.Add(qbs);
+
+                            }
                         }
                         else if (pC.Count == 2)
                         {
                             LineSegment ls = new LineSegment();
                             ls.Point = pC[1];
 
-                            PathSegmentCollection psc = new PathSegmentCollection();
-                            psc.Add(ls);
+                            PathSegmentCollection psc = new PathSegmentCollection
+                            {
+                                ls
+                            };
 
                             pf.Segments = psc;
                         }
@@ -369,13 +377,17 @@ namespace BRIE
                     };
                     path.MouseDown += (sender, e) =>
                     {
-                        Clipboard.SetText(feature.Properties.Osm_id);
+                        string a = string.Join("\n",geoPoints.Select(g => g.ToString()));
+                        Clipboard.SetText(a);
                     };
+
+                    
 
                     Paths.Add(path);
                 }
-            }
 
+
+            }
             return Paths;
         }
 

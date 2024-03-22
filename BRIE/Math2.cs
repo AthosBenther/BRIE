@@ -44,6 +44,21 @@ namespace BRIE
                     return new Point(x, y);
                 }
             }
+
+            public static double GetNormal(Point startPoint, Point endPoint)
+            {
+                // Calculate the direction vector from startPoint to endPoint
+                double dx = endPoint.X - startPoint.X;
+                double dy = endPoint.Y - startPoint.Y;
+
+                // Calculate the angle using arctan(dy / dx)
+                double angleInRadians = Math.Atan2(dy, dx);
+
+                // Convert the angle from radians to degrees and ensure it's between 0 and 360 degrees
+                double angleInDegrees = (angleInRadians * 180.0 / Math.PI + 360) % 360;
+
+                return angleInDegrees;
+            }
         }
 
     }

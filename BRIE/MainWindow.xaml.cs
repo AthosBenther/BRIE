@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using Microsoft.Win32;
+using Path = System.Windows.Shapes.Path;
 
 namespace BRIE
 {
@@ -21,62 +22,84 @@ namespace BRIE
         private Point lastMousePos;
         private Point startScrollPoint;
         public int canvasSize;
+        public static string CacheFilePath = @"%APPDATA%\Local\BRIE\cache.json";
+        public Project Project;
 
         public MainWindow()
         {
             InitializeComponent();
-
-            //Save16BitImage();
-
-            drawingCanvas.SizeChanged += DrawingCanvas_SizeChanged;
-
-            string file = @"C:\Users\athum\AppData\Local\BeamNG.drive\0.31\levels\franka-mini\google\RoadsWithHeigths.geojson";
-
-            loadHeightmap(@"C:\Users\athum\AppData\Local\BeamNG.drive\0.31\levels\franka-mini\height_source.png");
-
-            geoJson = new GeoJson(file, drawingCanvas);
+            CacheFilePath = Environment.ExpandEnvironmentVariables(CacheFilePath);
+            Cache cache;
 
 
-
-            LoadGeoJson();
-
-            roadsCanvas.Loaded += (a, b) =>
+            this.Loaded += (obj, e) =>
             {
-                //Thread.Sleep(10000);
-                ExportToPng(roadsCanvas, "C:\\Users\\athum\\AppData\\Local\\BeamNG.drive\\0.31\\levels\\franka-mini\\roadsele.png");
-            };
+                txtOutput.Text = ">";
+                if (File.Exists(CacheFilePath)) cache = FileManager.OpenJson<Cache>(CacheFilePath);
+                else cache = new Cache(this);
 
-            hmCanvas.Loaded += (a, b) =>
-            {
-                ExportToPng(hmCanvas, "C:\\Users\\athum\\AppData\\Local\\BeamNG.drive\\0.31\\levels\\franka-mini\\hmele.png");
-            };
+                Width = cache.WindowSize.Width;
+                Height = cache.WindowSize.Height;
+                WindowState = cache.IsWindowMaximized ? WindowState.Maximized : WindowState.Normal;
+                Left = cache.WindowPosition.X;
+                Top = cache.WindowPosition.Y;
 
+                SizeChanged += cache.WindowSizeChanged;
+                StateChanged += cache.WindowStateChanged;
+                LocationChanged += cache.WindowLocationChanged;
+
+
+
+                ProjectsDialog pdiag = new ProjectsDialog();
+
+                pdiag.Owner = this;
+                pdiag.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                pdiag.ShowDialog();
+
+                //Save16BitImage();
+
+                drawingCanvas.SizeChanged += DrawingCanvas_SizeChanged;
+
+                if (Project != null)
+                {
+                    if (Project.GeoJsonPath != null) geoJson = new GeoJson(Project.GeoJsonPath, geoRoadsCanvas);
+                    if (Project.HeightmapPath != null) loadHeightmap(Project.HeightmapPath);
+                    if (Project.SatMapPath != null) loadSatMap(Project.HeightmapPath);
+                    if (Project.HeightmapPath != null) loadHeightmap(Project.HeightmapPath);
+                }
+            };
         }
 
         private void LoadGeoJson()
         {
 
-            roadsCanvas.Children.Clear();
+            geoRoadsCanvas.Children.Clear();
 
             List<Shape> roads = geoJson.getRoads();
             List<Ellipse> ellis = roads.OfType<Ellipse>().ToList();
             List<Rectangle> rects = roads.OfType<Rectangle>().ToList();
             foreach (Shape road in ellis)
             {
-                roadsCanvas.Children.Add(road);
+                geoRoadsCanvas.Children.Add(road);
             }
             foreach (Shape road in rects)
             {
-                roadsCanvas.Children.Add(road);
+                geoRoadsCanvas.Children.Add(road);
             }
 
-            linesCanvas.Children.Clear();
+            //linesCanvas.Children.Clear();
             //foreach (Polyline pline in geoJson.GetPolys())
             //{
             //    linesCanvas.Children.Add(pline);
             //}
 
-            //ExportToPng(roadsCanvas, "C:\\Users\\athum\\AppData\\Local\\BeamNG.drive\\0.31\\levels\\franka-mini\\roadsele.png");
+            linesCanvas.Children.Clear();
+            foreach (Path path in geoJson.GetPaths())
+            {
+                linesCanvas.Children.Add(path);
+            }
+
+            //ExportToPng(geoRoadsCanvas, "C:\\Users\\athum\\AppData\\Local\\BeamNG.drive\\0.31\\levels\\franka-mini\\roadsele.png");
         }
 
         public static void ExportToPng(Canvas canvas, string filePath)
@@ -130,7 +153,7 @@ namespace BRIE
                     i.Height = i.Width = h;
                 }
 
-                roadsCanvas.Children.Clear();
+                geoRoadsCanvas.Children.Clear();
 
                 if (geoJson != null)
                 {
@@ -149,7 +172,7 @@ namespace BRIE
                 // Process the selected GeoJSON file
                 string selectedFilePath = openFileDialog.FileName;
 
-                geoJson = new GeoJson(selectedFilePath, roadsCanvas);
+                geoJson = new GeoJson(selectedFilePath, geoRoadsCanvas);
             }
         }
 
@@ -159,14 +182,8 @@ namespace BRIE
         }
         private void OpenHeightMap_Click(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "PNG files (*.png)|*.png|All files (*.*)|*.*";
-
-            if (openFileDialog.ShowDialog() == true)
-            {
-                // Load the selected PNG file as the canvas background
-                loadHeightmap(openFileDialog.FileName);
-            }
+            string? file = FileManager.OpenPng();
+            if (file != null) loadHeightmap(file);
         }
 
         private void loadHeightmap(string path)
@@ -177,19 +194,13 @@ namespace BRIE
                 BitmapImage bitmap = new BitmapImage(uri);
 
                 hmCanvas.Background = new ImageBrush(bitmap);
-                txtHm.Text = path.Split("\\").Last<string>();
             }
         }
 
         private void OpenSatMap_Click(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "PNG files (*.png)|*.png|All files (*.*)|*.*";
-
-            if (openFileDialog.ShowDialog() == true)
-            {
-                loadSatMap(openFileDialog.FileName);
-            }
+            string? file = FileManager.OpenPng();
+            if (file != null) loadSatMap(file);
         }
 
         private void loadSatMap(string path)
@@ -200,7 +211,6 @@ namespace BRIE
                 BitmapImage bitmap = new BitmapImage(uri);
 
                 siCanvas.Background = new ImageBrush(bitmap);
-                txtSi.Text = path.Split("\\").Last<string>();
             }
         }
 
@@ -257,26 +267,6 @@ namespace BRIE
             canvas.Visibility = isVisible ? Visibility.Collapsed : Visibility.Visible;
             source.Foreground = isVisible ? Brushes.Red : Brushes.Black;
             source.Content = isVisible ? "\xE738" : "\xE7B3";
-        }
-
-        private void mod_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            Slider slider = (sender as Slider);
-
-            if (slider.Name == "minHmod")
-            {
-                geoJson.minAscHM = e.NewValue;
-            }
-            else
-            {
-                geoJson.maxAscHM = e.NewValue;
-            }
-
-            ToolTip toolTip = new ToolTip();
-            toolTip.Content = e.NewValue.ToString();
-            slider.ToolTip = toolTip;
-
-            LoadGeoJson();
         }
     }
 }
