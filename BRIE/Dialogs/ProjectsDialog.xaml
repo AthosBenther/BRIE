@@ -1,4 +1,4 @@
-﻿<Window x:Class="BRIE.ProjectsDialog"
+﻿<Window x:Class="BRIE.Dialogs.ProjectsDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -8,12 +8,12 @@
         ResizeMode="NoResize"
         WindowStyle="None"
         Title="" Height="500" Width="800">
-    <Grid Margin="30,16,30,10">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="1*"/>
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
-        <StackPanel>
+        <StackPanel Margin="30,16,30,0">
             <TextBlock Text="BeamNG.Drive Roads Importer and Exporter" Margin="0,12,0,16" FontSize="22" FontWeight="Bold"/>
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -26,12 +26,13 @@
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel x:Name="projList">
                             <TextBlock Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}">No projects have been opened recently</TextBlock>
+
                         </StackPanel>
                     </ScrollViewer>
                 </StackPanel>
                 <StackPanel Grid.Column="1">
                     <TextBlock Margin="0,0,0,10" Text="Get Started" FontSize="18"/>
-                    <Button HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" BorderThickness="0" Click="OpenButton_Click">
+                    <Button HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" BorderThickness="0" Click="Open_Click">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="auto"/>
@@ -44,7 +45,7 @@
                             </StackPanel>
                         </Grid>
                     </Button>
-                    <Button Margin="0,6,0,0" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" BorderThickness="0" Click="OpenLevelFolderButton_Click">
+                    <Button Margin="0,6,0,0" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" BorderThickness="0" IsEnabled="False" Click="OpenLevelFolder_Click">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="auto"/>
@@ -58,7 +59,7 @@
                             </StackPanel>
                         </Grid>
                     </Button>
-                    <Button Margin="0,6,0,0" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" BorderThickness="0" Click="OpenLevelFolderButton_Click">
+                    <Button Margin="0,6,0,0" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" BorderThickness="0" Click="CreateNewProject_Click">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="auto"/>
@@ -80,8 +81,13 @@
                 Background="Transparent" BorderBrush="Transparent"
                 Foreground="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"
                 Padding="6,0"
-                Margin="10"
+                Margin="30,10"
                 Click="CloseButton_Click"
          />
+        <Rectangle x:Name="sqBkDrop" Grid.RowSpan="2" Visibility="Collapsed">
+            <Rectangle.Fill>
+                <SolidColorBrush Color="#FFEFEFEF" Opacity="0.7"/>
+            </Rectangle.Fill>
+        </Rectangle>
     </Grid>
 </Window>

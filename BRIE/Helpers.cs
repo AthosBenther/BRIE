@@ -1,11 +1,14 @@
-﻿using System.Windows;
+﻿using System;
+using System.Text.RegularExpressions;
+using System.Windows;
 using System.Windows.Media;
-using System.Windows.Shapes;
+using Path = System.Windows.Shapes.Path;
 
 namespace BRIE
 {
     public static class Helpers
     {
+        public static double EarthRadius = 6371000;
         public static PointCollection GetAllPoints(this Path path)
         {
             PointCollection points = new PointCollection();
@@ -52,6 +55,40 @@ namespace BRIE
             }
 
             return points;
+        }
+
+
+        public static string SanitizeFileName(this string fileName, string replacement = "_")
+        {
+            Regex removeInvalidChars = new Regex($"[{Regex.Escape(new string(System.IO.Path.GetInvalidFileNameChars()))}]",
+           RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+            return removeInvalidChars.Replace(fileName, replacement);
+
+        }
+
+
+        public static double LatitudeToMeters(double Latitude)
+        {
+            // Convert latitude from degrees to radians
+
+            double latitudeInRadians = Math2.DegreesToRadians(Latitude);
+
+            // Calculate the distance in meters using Haversine formula
+            double distanceInMeters = EarthRadius * latitudeInRadians;
+
+            return distanceInMeters;
+        }
+
+        public static double LongitudeToMeters(double Longitude)
+        {
+            // Convert longitude from degrees to radians
+            double longitudeInRadians = Longitude * (Math.PI / 180.0);
+
+            // Calculate the distance in meters using Haversine formula
+            double distanceInMeters = EarthRadius * longitudeInRadians * Math.Cos(Math2.DegreesToRadians(0));
+
+            return distanceInMeters;
         }
     }
 }

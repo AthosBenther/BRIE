@@ -33,10 +33,11 @@ namespace BRIE
 
             return null;
         }
-        internal static Project? NewBrie(string name)
+        internal static Project? NewBrie(string name, string fileName)
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.Filter = "BRIE Project File (*.brie)|*.brie";
+            saveFileDialog.FileName = fileName;
 
             if (saveFileDialog.ShowDialog() == true)
             {

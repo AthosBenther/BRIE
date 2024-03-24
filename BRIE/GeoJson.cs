@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -70,8 +69,11 @@ namespace BRIE
             Features = json.Features;
             Canvas = canvas;
 
+            Roads r = new Roads(this);
+
             MinMax();
             SetSizes();
+
         }
 
         private void SetSizes()
@@ -118,8 +120,8 @@ namespace BRIE
                             double normalLat = latitude - minLat;
                             double normalLong = longitude - minLong;
 
-                            double metersLong = LongitudeToMeters(normalLong);
-                            double metersLat = LatitudeToMeters(normalLat);
+                            double metersLong = Helpers.LongitudeToMeters(normalLong);
+                            double metersLat = Helpers.LatitudeToMeters(normalLat);
 
 
 
@@ -395,13 +397,13 @@ namespace BRIE
         {
             foreach (Feature feature in Features)
             {
-                bool ignore = ignoreIds.Contains(feature.Properties.ID) || feature.Properties.Highway == null;
+                bool ignore = ignoreIds.Contains(feature.Properties.ID) || string.IsNullOrEmpty(feature.Properties.Highway);
 
                 if (!ignore)
                 {
-                    foreach (var coordinates in feature.Geometry.Coordinates)
+                    foreach (var coordinatesGroup in feature.Geometry.Coordinates)
                     {
-                        foreach (var coord in coordinates)
+                        foreach (var coord in coordinatesGroup)
                         {
                             double longCoord = coord[0];
                             double latCoord = coord[1];
@@ -424,40 +426,9 @@ namespace BRIE
             diffH = maxH - minH;
             diffQgisH = maxQgisH - minQgisH;
 
-            diffLatM = LatitudeToMeters(diffLat);
-            diffLongM = LongitudeToMeters(diffLong);
+            diffLatM = Helpers.LatitudeToMeters(diffLat);
+            diffLongM = Helpers.LongitudeToMeters(diffLong);
         }
-
-        public double LatitudeToMeters(double lat)
-        {
-            // Earth's radius in meters
-            int earthRadius = 6371000;
-
-            // Convert latitude from degrees to radians
-
-            double latitudeInRadians = Math2.DegreesToRadians(lat);
-
-            // Calculate the distance in meters using Haversine formula
-            double distanceInMeters = earthRadius * latitudeInRadians;
-
-            return distanceInMeters;
-        }
-
-        public double LongitudeToMeters(double lon)
-        {
-            // Earth's radius in meters
-            double earthRadius = 6371000;
-
-            // Convert longitude from degrees to radians
-            double longitudeInRadians = lon * (Math.PI / 180.0);
-
-            // Calculate the distance in meters using Haversine formula
-            double distanceInMeters = earthRadius * longitudeInRadians * Math.Cos(Math2.DegreesToRadians(0));
-
-            return distanceInMeters;
-        }
-
-
     }
 
     public class CrsProperties
@@ -509,8 +480,8 @@ namespace BRIE
                     double normalLat = latitude - geoJson.minLat;
                     double normalLong = longitude - geoJson.minLong;
 
-                    double metersLong = geoJson.LongitudeToMeters(normalLong);
-                    double metersLat = geoJson.LatitudeToMeters(normalLat);
+                    double metersLong = Helpers.LongitudeToMeters(normalLong);
+                    double metersLat = Helpers.LatitudeToMeters(normalLat);
 
 
 

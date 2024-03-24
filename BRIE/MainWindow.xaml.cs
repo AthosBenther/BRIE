@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using BRIE.Dialogs;
 using Microsoft.Win32;
 using Path = System.Windows.Shapes.Path;
 
@@ -34,6 +35,7 @@ namespace BRIE
 
             this.Loaded += (obj, e) =>
             {
+                setMaxRestoreVis();
                 txtOutput.Text = ">";
                 if (File.Exists(CacheFilePath)) cache = FileManager.OpenJson<Cache>(CacheFilePath);
                 else cache = new Cache(this);
@@ -45,7 +47,12 @@ namespace BRIE
                 Top = cache.WindowPosition.Y;
 
                 SizeChanged += cache.WindowSizeChanged;
-                StateChanged += cache.WindowStateChanged;
+                StateChanged += (sender, e) =>
+                {
+                    setMaxRestoreVis();
+                    cache.WindowStateChanged(sender, e);
+                };
+
                 LocationChanged += cache.WindowLocationChanged;
 
 
@@ -62,11 +69,14 @@ namespace BRIE
 
                 if (Project != null)
                 {
+                    Title = Project.Name;
                     if (Project.GeoJsonPath != null) geoJson = new GeoJson(Project.GeoJsonPath, geoRoadsCanvas);
                     if (Project.HeightmapPath != null) loadHeightmap(Project.HeightmapPath);
                     if (Project.SatMapPath != null) loadSatMap(Project.HeightmapPath);
                     if (Project.HeightmapPath != null) loadHeightmap(Project.HeightmapPath);
                 }
+
+                sqBkDrop.Visibility = Visibility.Collapsed;
             };
         }
 
@@ -99,7 +109,7 @@ namespace BRIE
                 linesCanvas.Children.Add(path);
             }
 
-            //ExportToPng(geoRoadsCanvas, "C:\\Users\\athum\\AppData\\Local\\BeamNG.drive\\0.31\\levels\\franka-mini\\roadsele.png");
+            ExportToPng(geoRoadsCanvas, "C:\\Users\\athum\\AppData\\Local\\BeamNG.drive\\0.31\\levels\\franka-mini\\roadsele.png");
         }
 
         public static void ExportToPng(Canvas canvas, string filePath)
@@ -122,19 +132,19 @@ namespace BRIE
                 encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
 
                 // Save the encoded image to the memory stream
-                encoder.Save(memoryStream);
+                //encoder.Save(memoryStream);
 
                 // Reset the memory stream position to the beginning
                 memoryStream.Seek(0, SeekOrigin.Begin);
 
                 // Create a new PNG encoder with maximum compression level (lossless)
                 PngBitmapEncoder losslessEncoder = new PngBitmapEncoder();
-                losslessEncoder.Frames.Add(BitmapFrame.Create(memoryStream));
+                //losslessEncoder.Frames.Add(BitmapFrame.Create(memoryStream));
 
                 // Save the lossless encoded image to the file
                 using (FileStream fs = File.Create(filePath))
                 {
-                    losslessEncoder.Save(fs);
+                    encoder.Save(fs);
                 }
             }
         }
@@ -173,6 +183,7 @@ namespace BRIE
                 string selectedFilePath = openFileDialog.FileName;
 
                 geoJson = new GeoJson(selectedFilePath, geoRoadsCanvas);
+                LoadGeoJson();
             }
         }
 
@@ -210,10 +221,11 @@ namespace BRIE
                 Uri uri = new Uri(path);
                 BitmapImage bitmap = new BitmapImage(uri);
 
-                siCanvas.Background = new ImageBrush(bitmap);
+                smCanvas.Background = new ImageBrush(bitmap);
             }
         }
 
+        #region Zoom Stuff
         private void Canvas_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             // Increase or decrease the scale factor based on the mouse wheel delta
@@ -232,11 +244,7 @@ namespace BRIE
 
             // Limit the scaling factor to avoid very small or large scales
             double newScaleFactor = drawingCanvas.LayoutTransform.Value.M11 + scaleFactorChange;
-            if (newScaleFactor > 0.01 && newScaleFactor < 100)
-            {
-                // Apply the new scale factor
-                drawingCanvas.LayoutTransform = new ScaleTransform(newScaleFactor, newScaleFactor);
-            }
+            ChangeZoom(newScaleFactor);
 
             // Scroll the ScrollViewer to the new position
             scrl.ScrollToHorizontalOffset(newHorizontalOffset);
@@ -244,6 +252,36 @@ namespace BRIE
 
             e.Handled = true;
         }
+
+        private void ResetZoom_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeZoom(1);
+        }
+
+        private void IncZoom_Click(object sender, RoutedEventArgs e)
+        {
+            double newScaleFactor = drawingCanvas.LayoutTransform.Value.M11 + 0.1;
+            ChangeZoom(newScaleFactor);
+
+        }
+
+        private void DecZoom_Click(object sender, RoutedEventArgs e)
+        {
+            double newScaleFactor = drawingCanvas.LayoutTransform.Value.M11 - 0.1;
+            ChangeZoom(newScaleFactor);
+        }
+
+        private void ChangeZoom(double scale)
+        {
+            if (scale > 0.01 && scale < 100)
+            {
+                // Apply the new scale factor
+                drawingCanvas.LayoutTransform = new ScaleTransform(scale, scale);
+                txtZoom.Text = (scale * 100).ToString("###");
+            }
+        }
+
+#endregion
 
         private void CanvasSize_Selected(object sender, RoutedEventArgs e)
         {
@@ -267,6 +305,48 @@ namespace BRIE
             canvas.Visibility = isVisible ? Visibility.Collapsed : Visibility.Visible;
             source.Foreground = isVisible ? Brushes.Red : Brushes.Black;
             source.Content = isVisible ? "\xE738" : "\xE7B3";
+        }
+
+        private void winBtn_Click(object sender, RoutedEventArgs e)
+        {
+            Button btn = (Button)sender;
+
+            switch (btn.Name)
+            {
+                case "btnWinClose":
+                    Close(); break;
+                case "btnWinMin":
+                    
+                    WindowState = WindowState.Minimized;
+                    break;
+                default:
+                    WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized; 
+                    break;
+            }
+        }
+
+        private void setMaxRestoreVis()
+        {
+            bool IsWindowMaximized = WindowState == WindowState.Maximized;
+
+            btnWinMax.Visibility = IsWindowMaximized ? Visibility.Collapsed : Visibility.Visible;
+            btnWinRestore.Visibility = !IsWindowMaximized ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        private void Menu_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                if (Window.GetWindow(this) is Window window)
+                {
+                    window.DragMove();
+                }
+            }
+        }
+
+        private void ExportFileClick(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }
