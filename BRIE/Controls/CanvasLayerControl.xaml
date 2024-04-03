@@ -22,7 +22,7 @@
                     Background="Transparent"
                     BorderBrush="Transparent"
                     />
-            <Canvas x:Name="thumbCanvas" Height="32" Width="32" Margin="4,4,6,4" Background="Gray"></Canvas>
+            <Canvas x:Name="thumbCanvas" Height="32" Width="32" Margin="4,4,6,4" Background="White"/>
             <TextBlock x:Name="LayerLabel" Height="18" Text="{Binding Label, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
         </StackPanel>
         <StackPanel Height="22" Orientation="Horizontal" HorizontalAlignment="Right" Grid.Column="1">

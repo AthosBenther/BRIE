@@ -20,9 +20,19 @@ namespace BRIE.Controls
     /// </summary>
     public partial class Project : UserControl
     {
-        public Project()
+        public event EventHandler Click;
+        public string Path { get => lblPath.Text; }
+        public Project(DateTime date, string PName, string Path)
         {
             InitializeComponent();
+            lblName.Text = PName;
+            lblPath.Text = Path;
+            lblDate.Text = date.ToString();
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            Click?.Invoke(this, new EventArgs());
         }
     }
 }

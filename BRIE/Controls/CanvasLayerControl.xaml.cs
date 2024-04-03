@@ -16,9 +16,6 @@ namespace BRIE.Controls
             get { return (Canvas)GetValue(TargetCanvasProperty); }
             set { SetValue(TargetCanvasProperty, value); }
         }
-
-
-
         public bool CanOpenFile
         {
             get { return (bool)GetValue(CanOpenFileProperty); }
@@ -69,6 +66,8 @@ namespace BRIE.Controls
 
 
         public event RoutedEventHandler OpenFileClick;
+        public event RoutedEventHandler SaveFileClick;
+        public event RoutedEventHandler SaveCopyFileClick;
         public event RoutedEventHandler ExportFileClick;
         public string Label { get; set; }
 
@@ -81,7 +80,7 @@ namespace BRIE.Controls
 
         private void OpenFile_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (OpenFileClick != null) OpenFileClick.Invoke(this, e);
+            OpenFileClick?.Invoke(this, e);
         }
 
         private void btnLayerVisibility_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -97,17 +96,17 @@ namespace BRIE.Controls
 
         private void SaveFile_Click(object sender, RoutedEventArgs e)
         {
-
+            SaveFileClick?.Invoke(this, e);
         }
 
         private void SaveCopyFile_Click(object sender, RoutedEventArgs e)
         {
-
+            SaveCopyFileClick?.Invoke(this, e);
         }
 
         private void ExportFile_Click(object sender, RoutedEventArgs e)
         {
-
+            ExportFileClick?.Invoke(this, e);
         }
     }
 }

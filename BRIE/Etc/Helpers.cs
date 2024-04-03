@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Media;
 using Path = System.Windows.Shapes.Path;
 
-namespace BRIE
+namespace BRIE.Etc
 {
     public static class Helpers
     {
@@ -89,6 +89,26 @@ namespace BRIE
             double distanceInMeters = EarthRadius * longitudeInRadians * Math.Cos(Math2.DegreesToRadians(0));
 
             return distanceInMeters;
+        }
+
+        public static Point FlipX(this Point p, double axis)
+        {
+            return new Point(2 * axis - p.X, p.Y);
+        }
+
+        public static Point FlipX(this Point p)
+        {
+            return p.FlipX(Project.Resolution / 2);
+        }
+        public static Point FlipY(this Point p, double axis)
+        {
+            return new Point(p.X, 2 * axis - p.Y);
+        }
+
+        public static Point FlipY(this Point p)
+        {
+
+            return p.FlipY(Project.Resolution / 2);
         }
     }
 }

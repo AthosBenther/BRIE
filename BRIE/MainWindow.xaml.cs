@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -9,7 +12,11 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using BRIE.Dialogs;
+using BRIE.Etc;
+using BRIE.ImageFormats;
 using Microsoft.Win32;
+using static BRIE.Roads;
+using IOPath = System.IO.Path;
 using Path = System.Windows.Shapes.Path;
 
 namespace BRIE
@@ -20,64 +27,110 @@ namespace BRIE
     public partial class MainWindow : Window
     {
         private GeoJson geoJson;
-        private Point lastMousePos;
-        private Point startScrollPoint;
         public int canvasSize;
-        public static string CacheFilePath = @"%APPDATA%\Local\BRIE\cache.json";
-        public Project Project;
+        public static string CacheFilePath = @"%APPDATA%\Local\BRIE\Cache.json";
+        private bool isDragging;
+        private Point lastMouseDown;
+        public Output Output { get; set; }
 
         public MainWindow()
         {
             InitializeComponent();
+            DataContext = this;
+            Output = new();
             CacheFilePath = Environment.ExpandEnvironmentVariables(CacheFilePath);
-            Cache cache;
+            sqBkDrop.Visibility = Visibility.Visible;
 
 
             this.Loaded += (obj, e) =>
             {
+                Output.WriteLine("MainWindow started");
+                if (Keyboard.IsKeyDown(Key.LeftShift)) // Check if the 'A' key is pressed
+                {
+                    MessageBoxResult res = MessageBox.Show("Do you want to delete the cache?", "BRIE Recovery Mode", MessageBoxButton.YesNo);
+                    if (res == MessageBoxResult.Yes)
+                    {
+                        File.Delete(CacheFilePath);
+                    }
+                }
                 setMaxRestoreVis();
-                txtOutput.Text = ">";
-                if (File.Exists(CacheFilePath)) cache = FileManager.OpenJson<Cache>(CacheFilePath);
-                else cache = new Cache(this);
+                Cache.Initialize(this);
+                Project.PropertyChanged += Project_PropertyChanged;
+                Project.DataChanged += Project_DataChanged;
 
-                Width = cache.WindowSize.Width;
-                Height = cache.WindowSize.Height;
-                WindowState = cache.IsWindowMaximized ? WindowState.Maximized : WindowState.Normal;
-                Left = cache.WindowPosition.X;
-                Top = cache.WindowPosition.Y;
+                Width = Cache.WindowSize.Width;
+                Height = Cache.WindowSize.Height;
+                WindowState = Cache.IsWindowMaximized ? WindowState.Maximized : WindowState.Normal;
+                Left = Cache.WindowPosition.X;
+                Top = Cache.WindowPosition.Y;
 
-                SizeChanged += cache.WindowSizeChanged;
+                SizeChanged += Cache.WindowSizeChanged;
                 StateChanged += (sender, e) =>
                 {
                     setMaxRestoreVis();
-                    cache.WindowStateChanged(sender, e);
+                    Cache.WindowStateChanged(sender, e);
                 };
 
-                LocationChanged += cache.WindowLocationChanged;
+                LocationChanged += Cache.WindowLocationChanged;
 
-
-
-                ProjectsDialog pdiag = new ProjectsDialog();
-
-                pdiag.Owner = this;
-                pdiag.WindowStartupLocation = WindowStartupLocation.CenterScreen;
-                pdiag.ShowDialog();
-
-                //Save16BitImage();
+                OpenProjectsDiag();
 
                 drawingCanvas.SizeChanged += DrawingCanvas_SizeChanged;
 
-                if (Project != null)
-                {
-                    Title = Project.Name;
-                    if (Project.GeoJsonPath != null) geoJson = new GeoJson(Project.GeoJsonPath, geoRoadsCanvas);
-                    if (Project.HeightmapPath != null) loadHeightmap(Project.HeightmapPath);
-                    if (Project.SatMapPath != null) loadSatMap(Project.HeightmapPath);
-                    if (Project.HeightmapPath != null) loadHeightmap(Project.HeightmapPath);
-                }
-
                 sqBkDrop.Visibility = Visibility.Collapsed;
             };
+        }
+
+        private void ResetUI()
+        {
+            tviProjectName.Header = "Unsaved Project";
+            drawingCanvas.Children.OfType<Canvas>().ToList().ForEach(c => c.Children.Clear());
+        }
+
+        private void Project_DataChanged(object? sender, EventArgs e)
+        {
+            ResetUI();
+            tviProjectName.Header = Project.Name;
+            if (Project.GeoJsonPath != null)
+            {
+                geoJson = new GeoJson(Project.GeoJsonPath, geoRoadsCanvas);
+                LoadGeoJson();
+            }
+            if (Project.HeightmapPath != null) loadHeightmap(Project.HeightmapPath);
+            if (Project.SatMapPath != null) loadSatMap(Project.HeightmapPath);
+            if (Project.HeightmapPath != null) loadHeightmap(Project.HeightmapPath);
+        }
+
+        private void Project_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            string prop = e.PropertyName;
+            switch (prop)
+            {
+                case "Name":
+                    tviProjectName.Header = Project.Name;
+                    break;
+                case "Autosave":
+                    chkAutosave.IsChecked = Project.Autosave;
+                    break;
+                case "Resolution":
+                    txtResolution.Text = Project.Resolution.ToString();
+                    SetCanvasSize(Project.Resolution);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void OpenProjectsDiag()
+        {
+            ProjectsDialog pdiag = new ProjectsDialog()
+            {
+                Owner = this,
+                WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                ShowInTaskbar = false
+            };
+
+            pdiag.ShowDialog();
         }
 
         private void LoadGeoJson()
@@ -85,7 +138,7 @@ namespace BRIE
 
             geoRoadsCanvas.Children.Clear();
 
-            List<Shape> roads = geoJson.getRoads();
+            List<Shape> roads = geoJson.getRoads16();
             List<Ellipse> ellis = roads.OfType<Ellipse>().ToList();
             List<Rectangle> rects = roads.OfType<Rectangle>().ToList();
             foreach (Shape road in ellis)
@@ -103,20 +156,24 @@ namespace BRIE
             //    linesCanvas.Children.Add(pline);
             //}
 
-            linesCanvas.Children.Clear();
-            foreach (Path path in geoJson.GetPaths())
-            {
-                linesCanvas.Children.Add(path);
-            }
+            //linesCanvas.Children.Clear();
+            //foreach (Path path in geoJson.GetPaths())
+            //{
+            //    linesCanvas.Children.Add(path);
+            //}
 
             ExportToPng(geoRoadsCanvas, "C:\\Users\\athum\\AppData\\Local\\BeamNG.drive\\0.31\\levels\\franka-mini\\roadsele.png");
         }
 
         public static void ExportToPng(Canvas canvas, string filePath)
         {
+            // Ensure that the canvas is fully rendered before capturing it
+            canvas.Measure(new Size(canvas.ActualWidth, canvas.ActualHeight));
+            canvas.Arrange(new Rect(new Size(canvas.ActualWidth, canvas.ActualHeight)));
+
             // Create a RenderTargetBitmap with the same size as the canvas
             RenderTargetBitmap renderBitmap = new RenderTargetBitmap(
-                (int)canvas.Width, (int)canvas.Height,
+                (int)canvas.ActualWidth, (int)canvas.ActualHeight,
                 96, 96, PixelFormats.Pbgra32);
 
             // Render the canvas onto the RenderTargetBitmap
@@ -124,29 +181,122 @@ namespace BRIE
 
             // Create a PngBitmapEncoder and add the RenderTargetBitmap to it
             PngBitmapEncoder encoder = new PngBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
 
-            // Create a MemoryStream to hold the encoded image data
-            using (MemoryStream memoryStream = new MemoryStream())
+            // Save the encoded image to the file
+            using (FileStream fs = File.Create(filePath))
             {
-                // Add the RenderTargetBitmap to the encoder
-                encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
-
-                // Save the encoded image to the memory stream
-                //encoder.Save(memoryStream);
-
-                // Reset the memory stream position to the beginning
-                memoryStream.Seek(0, SeekOrigin.Begin);
-
-                // Create a new PNG encoder with maximum compression level (lossless)
-                PngBitmapEncoder losslessEncoder = new PngBitmapEncoder();
-                //losslessEncoder.Frames.Add(BitmapFrame.Create(memoryStream));
-
-                // Save the lossless encoded image to the file
-                using (FileStream fs = File.Create(filePath))
-                {
-                    encoder.Save(fs);
-                }
+                encoder.Save(fs);
             }
+        }
+
+
+        #region Files Stuff
+
+        #region Open Files stuff
+        private void OpenGeoJSON_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "GeoJSON Files (*.geojson)|*.geojson|All Files (*.*)|*.*";
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                // Process the selected GeoJSON file
+                string selectedFilePath = openFileDialog.FileName;
+                if (Project.IsInitialized) Project.GeoJsonPath = selectedFilePath;
+
+                geoJson = new GeoJson(selectedFilePath, geoRoadsCanvas);
+                LoadGeoJson();
+            }
+        }
+
+        private void OpenBeamNG_Click(object sender, RoutedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+        private void OpenHeightMap_Click(object sender, RoutedEventArgs e)
+        {
+            string? file = FileManager.OpenPng();
+            if (file != null)
+            {
+                if (Project.IsInitialized) Project.HeightmapPath = file;
+                loadHeightmap(file);
+            }
+        }
+
+        private void loadHeightmap(string path)
+        {
+            if (!String.IsNullOrEmpty(path))
+            {
+                Uri uri = new Uri(path);
+                BitmapImage bitmap = new BitmapImage(uri);
+
+                hmCanvas.Background = new ImageBrush(bitmap);
+            }
+        }
+
+        private void OpenSatMap_Click(object sender, RoutedEventArgs e)
+        {
+            string? file = FileManager.OpenPng();
+            if (file != null)
+            {
+                if (Project.IsInitialized) Project.SatMapPath = file;
+                loadSatMap(file);
+            }
+        }
+
+        private void loadSatMap(string path)
+        {
+            if (!String.IsNullOrEmpty(path))
+            {
+                Uri uri = new Uri(path);
+                BitmapImage bitmap = new BitmapImage(uri);
+
+                smCanvas.Background = new ImageBrush(bitmap);
+            }
+        }
+
+        #endregion
+
+        #region Export Files Stuff
+        private void ExportFileClick(object sender, RoutedEventArgs e)
+        {
+            Save16BitImage();
+        }
+
+        private void Save16BitImage()
+        {
+
+            Roads r = new Roads(geoJson);
+            string root = Directory.GetParent(Project.ProjectPath).FullName;
+
+            bgwpb.RunWorkAsync(r.ToPng16Worker(IOPath.Combine(new string[] { root, "Png16.png" })));
+            //Diagnostics.MeasureExecutionTime("ToPng16", () => { r.ToPng16(IOPath.Combine(new string[] { root, "Png16.png" })); }, Output);
+            //Diagnostics.MeasureExecutionTime("ToPng16Parallel", () => { r.ToPng16Parallel(IOPath.Combine(new string[] { root, "Png16Para.png" })); }, Output);
+        }
+        #endregion
+
+        #endregion
+
+
+        #region Canvas Stuff
+
+        private void SetCanvasSize(int size)
+        {
+            drawingCanvas.Height = size;
+        }
+
+        private void canvasVis_Click(object sender, RoutedEventArgs e)
+        {
+            Button source = (Button)sender;
+            string canvasName = source.Name.Replace("Vis", "Canvas");
+            Canvas canvas = drawingCanvas.Children.OfType<Canvas>().Where(i => i.Name == canvasName).First();
+
+            bool isVisible = canvas.Visibility == Visibility.Visible;
+
+            canvas.Visibility = isVisible ? Visibility.Collapsed : Visibility.Visible;
+            source.Foreground = isVisible ? Brushes.Red : Brushes.Black;
+            source.Content = isVisible ? "\xE738" : "\xE7B3";
         }
 
         private void DrawingCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -169,59 +319,6 @@ namespace BRIE
                 {
                     LoadGeoJson();
                 }
-            }
-        }
-
-        private void OpenGeoJSON_Click(object sender, RoutedEventArgs e)
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "GeoJSON Files (*.geojson)|*.geojson|All Files (*.*)|*.*";
-
-            if (openFileDialog.ShowDialog() == true)
-            {
-                // Process the selected GeoJSON file
-                string selectedFilePath = openFileDialog.FileName;
-
-                geoJson = new GeoJson(selectedFilePath, geoRoadsCanvas);
-                LoadGeoJson();
-            }
-        }
-
-        private void OpenBeamNG_Click(object sender, RoutedEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-        private void OpenHeightMap_Click(object sender, RoutedEventArgs e)
-        {
-            string? file = FileManager.OpenPng();
-            if (file != null) loadHeightmap(file);
-        }
-
-        private void loadHeightmap(string path)
-        {
-            if (!String.IsNullOrEmpty(path))
-            {
-                Uri uri = new Uri(path);
-                BitmapImage bitmap = new BitmapImage(uri);
-
-                hmCanvas.Background = new ImageBrush(bitmap);
-            }
-        }
-
-        private void OpenSatMap_Click(object sender, RoutedEventArgs e)
-        {
-            string? file = FileManager.OpenPng();
-            if (file != null) loadSatMap(file);
-        }
-
-        private void loadSatMap(string path)
-        {
-            if (!String.IsNullOrEmpty(path))
-            {
-                Uri uri = new Uri(path);
-                BitmapImage bitmap = new BitmapImage(uri);
-
-                smCanvas.Background = new ImageBrush(bitmap);
             }
         }
 
@@ -281,31 +378,10 @@ namespace BRIE
             }
         }
 
-#endregion
+        #endregion
 
-        private void CanvasSize_Selected(object sender, RoutedEventArgs e)
-        {
-            ComboBoxItem cbbx = (ComboBoxItem)sender;
+        #endregion
 
-            if (cbbx.Content != null)
-            {
-                int size = int.Parse(cbbx.Content.ToString());
-                drawingCanvas.Height = size;
-            }
-        }
-
-        private void canvasVis_Click(object sender, RoutedEventArgs e)
-        {
-            Button source = (Button)sender;
-            string canvasName = source.Name.Replace("Vis", "Canvas");
-            Canvas canvas = drawingCanvas.Children.OfType<Canvas>().Where(i => i.Name == canvasName).First();
-
-            bool isVisible = canvas.Visibility == Visibility.Visible;
-
-            canvas.Visibility = isVisible ? Visibility.Collapsed : Visibility.Visible;
-            source.Foreground = isVisible ? Brushes.Red : Brushes.Black;
-            source.Content = isVisible ? "\xE738" : "\xE7B3";
-        }
 
         private void winBtn_Click(object sender, RoutedEventArgs e)
         {
@@ -316,11 +392,11 @@ namespace BRIE
                 case "btnWinClose":
                     Close(); break;
                 case "btnWinMin":
-                    
+
                     WindowState = WindowState.Minimized;
                     break;
                 default:
-                    WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized; 
+                    WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
                     break;
             }
         }
@@ -344,9 +420,71 @@ namespace BRIE
             }
         }
 
-        private void ExportFileClick(object sender, RoutedEventArgs e)
+        private void SaveProjectClick(object sender, RoutedEventArgs e)
         {
+            Project.Save();
+        }
 
+        private void MenuProjects_Click(object sender, RoutedEventArgs e)
+        {
+            OpenProjectsDiag();
+        }
+
+        private void drawingCanvas_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                isDragging = true;
+                lastMouseDown = e.GetPosition(scrl);
+                drawingCanvas.CaptureMouse();
+            }
+        }
+
+        private void drawingCanvas_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (isDragging)
+            {
+                Point mousePos = e.GetPosition(scrl);
+                double deltaX = mousePos.X - lastMouseDown.X;
+                double deltaY = mousePos.Y - lastMouseDown.Y;
+
+                double newHorizontalOffset = Math.Max(0, scrl.HorizontalOffset - deltaX);
+                double newVerticalOffset = Math.Max(0, scrl.VerticalOffset - deltaY);
+
+                scrl.ScrollToHorizontalOffset(newHorizontalOffset);
+                scrl.ScrollToVerticalOffset(newVerticalOffset);
+
+                lastMouseDown = mousePos;
+            }
+        }
+
+        private void drawingCanvas_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                isDragging = false;
+                drawingCanvas.ReleaseMouseCapture();
+            }
+        }
+
+
+        private void TxtResolution_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            // Allowing only numeric characters
+            if (!char.IsDigit(e.Text, e.Text.Length - 1))
+            {
+                btnApplyRes.IsEnabled = false;
+                e.Handled = true; // Ignore the input
+            }
+            else
+            {
+                btnApplyRes.IsEnabled = true;
+            }
+        }
+
+        private void btnApplyRes_Click(object sender, RoutedEventArgs e)
+        {
+            Project.Resolution = int.Parse(txtResolution.Text);
         }
     }
 }

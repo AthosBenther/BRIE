@@ -4,6 +4,12 @@
              xmlns:local="clr-namespace:BRIE"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <ResourceDictionary>
+            <!-- Other resource dictionaries if any -->
+            <ResourceDictionary.MergedDictionaries>
+                <!-- Merge your CustomResources.xaml file here -->
+                <ResourceDictionary Source="Resources/TreeViewItem.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

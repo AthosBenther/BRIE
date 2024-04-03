@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using BRIE.Dialogs;
+using BRIE.Etc;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 
@@ -21,19 +23,22 @@ namespace BRIE
             return null;
         }
 
-        internal static Project? OpenBrie()
+        internal static ProjectData? OpenBrie()
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "BRIE Project File (*.brie)|*.brie";
+            openFileDialog.ShowDialog();
 
-            if (openFileDialog.ShowDialog() == true)
-            {
-                return OpenJson<Project>(openFileDialog.FileName);
-            }
-
-            return null;
+            return (!string.IsNullOrWhiteSpace(openFileDialog.FileName)) ? OpenBrie(openFileDialog.FileName) : null;
         }
-        internal static Project? NewBrie(string name, string fileName)
+        internal static ProjectData OpenBrie(string FileName)
+        {
+            ProjectData p = OpenJson<ProjectData>(FileName);
+            Cache.UpsertRecentProject(p.Name, p.ProjectPath);
+            return p;
+        }
+
+        internal static ProjectData? NewBrie(string name, string fileName)
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.Filter = "BRIE Project File (*.brie)|*.brie";
@@ -41,11 +46,56 @@ namespace BRIE
 
             if (saveFileDialog.ShowDialog() == true)
             {
-                Project p = new Project(name, saveFileDialog.FileName);
-                File.WriteAllText(p.ProjectPath,JsonConvert.SerializeObject(p));
+                ProjectData p = new ProjectData(name, saveFileDialog.FileName);
+                File.WriteAllText(p.ProjectPath, SerializeObject(p));
+                Cache.UpsertRecentProject(p.Name, p.ProjectPath);
                 return p;
             }
             return null;
+        }
+
+        internal static void SaveBrie(ProjectData p)
+        {
+            if (File.Exists(p.ProjectPath))
+            {
+                if (p.Name == null)
+                {
+                    ProjectNameDialog projectNameDialog = new ProjectNameDialog();
+                    projectNameDialog.ShowDialog();
+
+                    if (projectNameDialog.IsSafe)
+                    {
+                        p.Name = projectNameDialog.ProjectName;
+                        File.WriteAllText(p.ProjectPath, SerializeObject(p));
+                        Cache.UpsertRecentProject(p.Name, p.ProjectPath);
+                    }
+                    else
+                    {
+                        throw new NullReferenceException("This Project can't be saved: it has no name. Add a name an try again.");
+                    }
+                }
+                if (Path.GetExtension(p.ProjectPath).ToLower() == ".brie")
+                {
+                    SaveJson(p, p.ProjectPath);
+                    Cache.UpsertRecentProject(p.Name, p.ProjectPath);
+                }
+                else
+                {
+                    Uri uri = new Uri(p.ProjectPath);
+                    throw new FileFormatException(uri, "The target Project file is not a .brie. How did you do that?");
+                }
+            }
+            else
+            {
+                SaveFileDialog saveFileDialog = new SaveFileDialog();
+                saveFileDialog.Filter = "BRIE Project File (*.brie)|*.brie";
+                saveFileDialog.FileName = p.Name.SanitizeFileName();
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    File.WriteAllText(p.ProjectPath, SerializeObject(p));
+                    Cache.UpsertRecentProject(p.Name, p.ProjectPath);
+                }
+            }
         }
 
         public static T OpenJson<T>(string filePath)
@@ -68,7 +118,16 @@ namespace BRIE
 
         public static void SaveJson(object Object, string path)
         {
-            File.WriteAllText(path, JsonConvert.SerializeObject(Object));
+            File.WriteAllText(path, SerializeObject(Object));
+        }
+
+        private static string SerializeObject(object obj)
+        {
+            JsonSerializerSettings settings = new JsonSerializerSettings();
+            settings.ContractResolver = new IgnoreReadOnlyPropertiesResolver();
+            settings.Formatting = Formatting.Indented;
+            settings.NullValueHandling = NullValueHandling.Ignore;
+            return JsonConvert.SerializeObject(obj,settings);
         }
     }
 }

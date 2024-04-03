@@ -6,120 +6,155 @@ using System.Windows;
 
 namespace BRIE
 {
-    public class Cache
+    public class CacheData
     {
-        private Dictionary<DateTime, string[]> _recentProjects;
-        private Size _windowSize;
-        private Point _windowPosition;
-        private bool _isWindowMaximized;
-        private bool _isInitializing = false;
-        private bool _isInitialized = false;
+        public Dictionary<DateTime, List<string>> RecentProjects { get; set; }
 
+        public Size WindowSize { get; set; }
+        public Point WindowPosition { get; set; }
+        public bool IsWindowMaximized { get; set; }
+    }
+    public static class Cache
+    {
+        public static event EventHandler RecentProjectsChanged;
+        private static CacheData Data;
+        private static bool _isInitializing = false;
+        private static bool _isInitialized = false;
 
-        public Dictionary<DateTime, string[]> RecentProjects
+        private static MainWindow MainWindow;
+        private static Dictionary<DateTime, List<string>> RecentProjects
         {
-            get { return _recentProjects; }
+            get
+            {
+                return Data.RecentProjects.OrderByDescending(pair => pair.Key).ToDictionary(x => x.Key, x => x.Value);
+            }
+            set
+            {
+                Data.RecentProjects = value.OrderByDescending(pair => pair.Key).ToDictionary(x => x.Key, x => x.Value);
+            }
         }
 
-        public Size WindowSize
+        public static Size WindowSize
         {
-            get { return _windowSize; }
-            set { _windowSize = value; Save(); }
+            get { return Data.WindowSize; }
+            set { Data.WindowSize = value; Save(); }
         }
 
-        public Point WindowPosition
+        public static Point WindowPosition
         {
-            get { return _windowPosition; }
-            set { _windowPosition = value; Save(); }
+            get { return Data.WindowPosition; }
+            set { Data.WindowPosition = value; Save(); }
         }
 
-        public bool IsWindowMaximized
+        public static bool IsWindowMaximized
         {
-            get { return _isWindowMaximized; }
-            set { _isWindowMaximized = value; Save(); }
+            get { return Data.IsWindowMaximized; }
+            set { Data.IsWindowMaximized = value; Save(); }
         }
 
-        public Cache()
+
+        public static void Initialize(MainWindow mainWindow)
         {
-            if (_recentProjects == null) _recentProjects = new Dictionary<DateTime, string[]>();
+            if (!_isInitialized && !_isInitializing)
+            {
+                MainWindow = mainWindow;
+                _isInitializing = true;
+
+                // Load cache data from file
+                LoadCacheData();
+
+                _isInitialized = true;
+                _isInitializing = false;
+
+                Save();
+            }
         }
 
-        public Cache(Window MainWindow)
-        {
-            _isInitializing = true;
 
-            _recentProjects = new Dictionary<DateTime, string[]>();
-            WindowSize = MainWindow.RenderSize;
-            WindowPosition = new Point(MainWindow.Left, MainWindow.Top);
-            IsWindowMaximized = (MainWindow.WindowState == WindowState.Maximized);
 
-            _isInitializing = false;
-            Save();
-        }
-
-        public void WindowSizeChanged(object sender, SizeChangedEventArgs e)
+        public static void WindowSizeChanged(object sender, SizeChangedEventArgs e)
         {
             WindowSize = e.NewSize;
         }
 
-        public Dictionary<DateTime, string[]> GetRecentProjects()
+        public static Dictionary<DateTime, List<string>> GetRecentProjects()
         {
-            return _recentProjects;
+            return RecentProjects;
         }
 
-        public void UpsertRecentProject(string projectName, string projectPath)
+        public static void UpsertRecentProject(string projectName, string projectPath)
         {
             // Get the current date and time
             DateTime dateTime = DateTime.Now;
 
             // Remove any recent project with the same name
-            var projectsToRemove = _recentProjects.Where(pair => pair.Value[0] == projectName).ToList();
+            var projectsToRemove = RecentProjects.Where(pair => pair.Value[0] == projectName).ToList();
             foreach (var projectToRemove in projectsToRemove)
             {
-                _recentProjects.Remove(projectToRemove.Key);
+                RecentProjects.Remove(projectToRemove.Key);
             }
 
             // Add the new recent project
-            _recentProjects.Add(dateTime, new string[] { projectName, projectPath });
+            RecentProjects.Add(dateTime, new List<string> { projectName, projectPath });
+            InvokeRecentProjectsChanged();
             Save();
         }
 
-        public void RemoveRecentProject(string projectName)
+        public static void RemoveRecentProject(string projectName)
         {
             // Find the keys of recent projects with the specified project name
-            var keysToRemove = _recentProjects.Where(pair => pair.Value[0] == projectName).Select(pair => pair.Key).ToList();
+            var keysToRemove = RecentProjects.Where(pair => pair.Value[0] == projectName).Select(pair => pair.Key).ToList();
 
             // Remove the recent projects with the specified project name
             foreach (var key in keysToRemove)
             {
-                _recentProjects.Remove(key);
+                RecentProjects.Remove(key);
             }
+            InvokeRecentProjectsChanged();
             Save();
         }
 
-        public void ClearRecentProjects()
+        public static void ClearRecentProjects()
         {
-            _recentProjects.Clear();
+            InvokeRecentProjectsChanged();
             Save();
         }
 
-        private void Save()
+        private static void InvokeRecentProjectsChanged()
+        {
+            RecentProjectsChanged?.Invoke(new object(), new EventArgs());
+        }
+
+        private static void LoadCacheData()
+        {
+            Data = new CacheData();
+            RecentProjects = new Dictionary<DateTime, List<string>>();
+            WindowSize = MainWindow.RenderSize;
+            WindowPosition = new Point(MainWindow.Left, MainWindow.Top);
+            IsWindowMaximized = (MainWindow.WindowState == WindowState.Maximized);
+
+            if (File.Exists(MainWindow.CacheFilePath))
+            {
+                Data = FileManager.OpenJson<CacheData>(MainWindow.CacheFilePath);
+            }
+        }
+        private static void Save()
         {
 
             if (!_isInitializing)
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(MainWindow.CacheFilePath));
-                FileManager.SaveJson(this, MainWindow.CacheFilePath);
+                FileManager.SaveJson(Data, MainWindow.CacheFilePath);
             }
         }
 
-        internal void WindowStateChanged(object? sender, EventArgs e)
+        internal static void WindowStateChanged(object? sender, EventArgs e)
         {
             IsWindowMaximized = (sender as MainWindow).WindowState == WindowState.Maximized;
             Save();
         }
 
-        internal void WindowLocationChanged(object? sender, EventArgs e)
+        internal static void WindowLocationChanged(object? sender, EventArgs e)
         {
             Window w = sender as Window;
             WindowPosition = new Point(w.Left, w.Top);

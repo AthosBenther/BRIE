@@ -1,4 +1,12 @@
-﻿using System.Windows;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Input;
+using BRIE.Controls;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace BRIE.Dialogs
 {
@@ -7,22 +15,51 @@ namespace BRIE.Dialogs
     /// </summary>
     public partial class ProjectsDialog : Window
     {
-        public Project? project;
-        public string? ProjectPath;
         public ProjectsDialog()
         {
             InitializeComponent();
+            Cache.RecentProjectsChanged += Cache_RecentProjectsChanged;
+            PopulateRecentProjects();
+        }
+
+        private void Cache_RecentProjectsChanged(object? sender, System.EventArgs e)
+        {
+            PopulateRecentProjects();
+        }
+
+        private void PopulateRecentProjects()
+        {
+            projList.Children.Clear();
+            var projs = Cache.GetRecentProjects();
+            if (projs.Count > 0)
+            {
+                foreach (var project in projs)
+                {
+                    Controls.Project ctrlProj = new Controls.Project(project.Key, project.Value[0], project.Value[1]);
+                    ctrlProj.Click += (o, e) =>
+                    {
+                        Visibility = Visibility.Collapsed;
+                        Project.Initialize(FileManager.OpenBrie(ctrlProj.Path));
+                        Close();
+                    };
+                    projList.Children.Add(ctrlProj);
+                }
+            }
+            else
+            {
+                TextBlock emptyList = new TextBlock();
+                emptyList.Foreground = SystemColors.GrayTextBrush;
+                emptyList.Text = "No projects have been opened recently";
+                projList.Children.Add(emptyList);
+            }
         }
 
         private void Open_Click(object sender, RoutedEventArgs e)
         {
-            MainWindow MainWindow = (Owner as MainWindow);
-            MainWindow.Project = FileManager.OpenBrie();
-            if (MainWindow.Project != null)
-            {
-                Close();
-            }
-            
+            Visibility = Visibility.Collapsed;
+            Project.Initialize(FileManager.OpenBrie());
+            if (Project.IsInitialized) Close();
+            else this.Visibility = Visibility.Visible;
         }
 
         private void OpenLevelFolder_Click(object sender, RoutedEventArgs e)
@@ -35,12 +72,12 @@ namespace BRIE.Dialogs
             ProjectNameDialog projectNameDialog = new ProjectNameDialog();
             projectNameDialog.Owner = this;
             projectNameDialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-            
+
             sqBkDrop.Visibility = Visibility.Visible;
             projectNameDialog.ShowDialog();
             if (projectNameDialog.IsSafe)
             {
-                project = FileManager.NewBrie(projectNameDialog.Name, projectNameDialog.fileName);
+                Project.Initialize(FileManager.NewBrie(projectNameDialog.ProjectName, projectNameDialog.FileName));
                 Close();
             }
             sqBkDrop.Visibility = Visibility.Collapsed;
@@ -52,5 +89,15 @@ namespace BRIE.Dialogs
             Close();
         }
 
+        private void Grid_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                if (Window.GetWindow(this) is Window window)
+                {
+                    window.DragMove();
+                }
+            }
+        }
     }
 }

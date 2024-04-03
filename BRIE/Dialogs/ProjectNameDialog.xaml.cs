@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Media;
+using BRIE.Etc;
 
 namespace BRIE.Dialogs
 {
@@ -8,8 +9,9 @@ namespace BRIE.Dialogs
     /// </summary>
     public partial class ProjectNameDialog : Window
     {
-        public string Name, fileName;
+        public string ProjectName, FileName;
         public bool IsSafe = false;
+        public bool DialogCanceled = false;
         public ProjectNameDialog()
         {
             InitializeComponent();
@@ -19,10 +21,10 @@ namespace BRIE.Dialogs
         private void iptName_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
 
-            Name = iptName.Text;
-            fileName = iptName.Text.SanitizeFileName();
+            ProjectName = iptName.Text.Trim();
+            FileName = iptName.Text.Trim().SanitizeFileName();
 
-            IsSafe = !(string.IsNullOrEmpty(Name) && string.IsNullOrEmpty(fileName));
+            IsSafe = !(string.IsNullOrWhiteSpace(ProjectName) && string.IsNullOrWhiteSpace(FileName));
 
             if (!IsSafe)
             {
@@ -44,8 +46,9 @@ namespace BRIE.Dialogs
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
-            Name = fileName = "";
+            ProjectName = FileName = "";
             IsSafe = false;
+            DialogCanceled = true;
             Close();
         }
     }

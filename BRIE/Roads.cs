@@ -1,18 +1,20 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using BRIE.Etc;
+using BRIE.Types;
 
 namespace BRIE
 {
     public class Roads
     {
-        private Rect? extents;
+        private Extents? extents;
 
-        public Rect Extents
+        public Extents Extents
         {
             get
             {
-                if (extents != null) return extents.Value;
+                if (extents != null) return extents;
                 else
                 {
                     List<Point> coords = All.SelectMany(Road => Road.Nodes, (Road, Node) =>
@@ -29,14 +31,37 @@ namespace BRIE
                     double maxX = Xs.Max();
                     double maxY = Ys.Max();
 
-                    extents = new Rect(new Point(maxX, maxY), new Point(minX, minY));
-                    return extents.Value;
+                    extents = new Extents(minX, maxY, maxX, minY);
+                    return extents;
                 }
             }
         }
 
 
         public List<Road> All = new List<Road>();
+
+        public bool ScaleToExtents = true;
+
+        private double? _scaleX, _scaleY;
+
+        public double ScaleX
+        {
+            get
+            {
+                _scaleX = _scaleX ?? Project.Size / Helpers.LongitudeToMeters(Extents.Width);
+                return _scaleX.Value;
+            }
+        }
+
+        public double ScaleY
+        {
+            get
+            {
+                _scaleY = _scaleY ?? Project.Size / Helpers.LongitudeToMeters(Extents.Height);
+                return _scaleY.Value;
+            }
+        }
+
 
 
         public Roads(GeoJson geoJson)
@@ -55,30 +80,56 @@ namespace BRIE
         }
         public class Road
         {
-            public string? Name;
-            public int OsmID;
-            public List<Node> Nodes;
-            public Roads Parent;
-            public Rect Extents { get { return Parent.Extents; } }
-
-            public Road(Roads parent, int osmID, string? name, List<List<double>> nodes)
+            private List<Node> _nodes;
+            private Feature _feature;
+            public string? Name
             {
-                Parent = parent;
-                OsmID = osmID;
-                Name = name;
-
-                Nodes = nodes.Select(n => new Node(n)).ToList();
+                get
+                {
+                    return _feature.Properties.Name;
+                }
             }
+            public int OsmID
+            {
+                get
+                {
+                    return int.Parse(_feature.Properties.Osm_id);
+                }
+            }
+            public List<Node> Nodes
+            {
+                get
+                {
+                    if (_nodes == null)
+                    {
+                        _nodes = _feature.Geometry.Coordinates.SelectMany(CoordinatesGroup => CoordinatesGroup, (CoordinatesGroup, Coordinate) => new Node(Coordinate, this)).ToList();
+                    }
+                    return _nodes;
+                }
+            }
+            public Roads Parent;
+            public Extents Extents { get { return Parent.Extents; } }
+            public bool ScaleToExtents => Parent.ScaleToExtents;
+
+            public double ScaleX => Parent.ScaleX;
+            public double ScaleY => Parent.ScaleY;
+
+
+
+
+            //public Road(Roads parent, int osmID, string? name, List<List<double>> nodes)
+            //{
+            //    Parent = parent;
+            //    OsmID = osmID;
+            //    Name = name;
+
+            //    Nodes = nodes.Select(n => new Node(n)).ToList();
+            //}
 
             public Road(Roads parent, Feature feature)
             {
                 Parent = parent;
-                OsmID = int.Parse(feature.Properties.Osm_id);
-                Name = feature.Properties.Name;
-
-                Nodes = feature.Geometry.Coordinates.SelectMany(CoordinatesGroup => CoordinatesGroup, (CoordinatesGroup, Coordinate) => new Node(Coordinate)).ToList();
-
-                //nodes.Select(n => new Node(n)).ToList();
+                _feature = feature;
             }
             public class Node
             {
@@ -101,7 +152,7 @@ namespace BRIE
 
                 public Point NormalCoordinate
                 {
-                    get { return new Point(Coordinate.X - Parent.Extents.X, Coordinate.Y - Parent.Extents.Y); }
+                    get { return new Point(Coordinate.X - Parent.Extents.West, Coordinate.Y - Parent.Extents.South); }
                 }
                 #endregion
 
@@ -115,11 +166,22 @@ namespace BRIE
                 /// <summary>
                 /// Horizontal position on earth in Meters
                 /// </summary>
+                private Point? _position, _scaledPosition;
                 public Point Position
                 {
                     get
                     {
-                        return new Point(Helpers.LongitudeToMeters(NormalCoordinate.X), Helpers.LatitudeToMeters(NormalCoordinate.Y));
+                        _position = _position ?? new Point(Helpers.LongitudeToMeters(NormalCoordinate.X), Helpers.LatitudeToMeters(NormalCoordinate.Y));
+                        return _position.Value;
+                    }
+                }
+
+                public Point ScaledPosition
+                {
+                    get
+                    {
+                        _position = _position ?? new Point(Helpers.LongitudeToMeters(NormalCoordinate.X) * Parent.ScaleX, Helpers.LatitudeToMeters(NormalCoordinate.Y) * Parent.ScaleY);
+                        return _position.Value;
                     }
                 }
 
@@ -133,17 +195,21 @@ namespace BRIE
                 }
 
                 #region Normalaized
-
+                public double NormalizedElevation
+                {
+                    get { return (elevation - Project.TerrainElevationMin) / Project.TerrainDifference; }
+                }
                 #endregion
 
                 #endregion
 
                 #region Constructors
 
-                public Node(List<double> coordinates)
+                public Node(List<double> coordinates, Road parent)
                 {
                     Coordinate = new Point(coordinates[0], coordinates[1]);
                     Elevation = coordinates[2];
+                    Parent = parent;
                 }
                 #endregion
 
