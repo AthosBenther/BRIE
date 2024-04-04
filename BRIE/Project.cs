@@ -266,9 +266,15 @@ namespace BRIE
 
         public static void Initialize(ProjectData data)
         {
+
+
             Data = data;
-            Data.PropertyChanged += Data_PropertyChanged;
-            Data_Changed(typeof(Project), new EventArgs());
+            if (data != null)
+            {
+                Data.PropertyChanged += Data_PropertyChanged;
+                Data_Changed(typeof(Project), new EventArgs());
+            }
+
         }
 
         private static void Data_Changed(object? sender, EventArgs e)
