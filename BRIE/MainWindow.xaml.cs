@@ -97,7 +97,7 @@ namespace BRIE
                 LoadGeoJson();
             }
             if (Project.HeightmapPath != null) loadHeightmap(Project.HeightmapPath);
-            if (Project.SatMapPath != null) loadSatMap(Project.HeightmapPath);
+            if (Project.SatMapPath != null) loadSatMap(Project.SatMapPath);
             if (Project.HeightmapPath != null) loadHeightmap(Project.HeightmapPath);
         }
 
