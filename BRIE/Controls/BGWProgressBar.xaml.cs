@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -22,19 +23,6 @@ namespace BRIE.Controls
     public partial class BGWProgressBar : UserControl, INotifyPropertyChanged
     {
         private BackgroundWorker bgw { get; set; }
-
-        private Visibility _isVisible;
-
-        public Visibility IsVisible
-        {
-            get { return _isVisible; }
-            set { if(_isVisible != value)
-                {
-                    _isVisible = value;
-                    OnPropertyChanged(nameof(IsVisible));
-                } }
-        }
-
 
         private bool _indeterminate = false;
         public bool Indeterminate
@@ -57,7 +45,7 @@ namespace BRIE.Controls
             {
                 if (_progress != value)
                 {
-                    
+
                     _progress = value < 0 ? 0 : value;
                     Indeterminate = value < 0;
                     OnPropertyChanged(nameof(Progress));
@@ -87,14 +75,7 @@ namespace BRIE.Controls
             InitializeComponent();
             DataContext = this;
             bgw = new();
-            Label = "Alala";
-            Progress = 50;
             Visibility = Visibility.Collapsed;
-        }
-
-        private void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public void RunWorkAsync(BackgroundWorker BackgroundWorker)
@@ -121,11 +102,32 @@ namespace BRIE.Controls
                     {
                         (Parent as MainWindow).Output.WriteLine(ex.Message);
                     }
-                    IsVisible = bgw.IsBusy? Visibility.Visible : Visibility.Collapsed;
                 };
             }
-            bgw.RunWorkerCompleted += RunWorkerCompleted;
+            bgw.RunWorkerCompleted += Bgw_RunWorkerCompleted;
             bgw.RunWorkerAsync();
         }
+
+        private void Bgw_RunWorkerCompleted(object? sender, RunWorkerCompletedEventArgs e)
+        {
+            Timer timer = new Timer();
+            timer.Elapsed += (o, e) => Application.Current.Dispatcher.Invoke(() =>
+                                        {
+                                            timer.Stop();
+                                            Visibility = Visibility.Collapsed;
+                                            timer.Dispose();
+                                        });
+
+            timer.Interval = 3000;
+            timer.Start();
+            RunWorkerCompleted?.Invoke(this, e);
+        }
+
+        private void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+
     }
 }
