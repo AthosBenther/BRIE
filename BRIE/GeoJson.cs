@@ -380,27 +380,21 @@ namespace BRIE
                             LinearGradientBrush gradientBrush = new LinearGradientBrush();
 
 
-                            ushort gray16A = (ushort)(scaledP1h * ushort.MaxValue);
-                            string hex = gray16A.ToString("X").PadLeft(4, '0');
-                            byte R = Convert.ToByte(hex.Substring(0, 2), 16);
-                            byte G = Convert.ToByte(hex.Substring(2, 2), 16);
+                            byte gray8A = (byte)(scaledP1h * byte.MaxValue);
                             Color color16A = new Color()
                             {
-                                R = R,
-                                G = G,
-                                B = byte.MinValue,
+                                R = gray8A,
+                                G = gray8A,
+                                B = gray8A,
                                 A = byte.MaxValue
                             };
 
-                            ushort gray16B = (ushort)(scaledP2h * ushort.MaxValue);
-                            string hex2 = gray16B.ToString("X").PadLeft(4, '0');
-                            byte R2 = Convert.ToByte(hex2.Substring(0, 2), 16);
-                            byte G2 = Convert.ToByte(hex2.Substring(2, 2), 16);
+                            byte gray8B = (byte)(scaledP2h * byte.MaxValue);
                             Color color16B = new Color()
                             {
-                                R = R2,
-                                G = G2,
-                                B = byte.MinValue,
+                                R = gray8B,
+                                G = gray8B,
+                                B = gray8B,
                                 A = byte.MaxValue
                             };
 
