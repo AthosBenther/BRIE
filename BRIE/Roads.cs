@@ -197,7 +197,7 @@ namespace BRIE
                 #region Normalaized
                 public double NormalizedElevation
                 {
-                    get { return (elevation - Project.TerrainElevationMin) / Project.TerrainDifference; }
+                    get { return (elevation - Project.TerrainElevationMin) / Project.TerrainElevationDelta; }
                 }
                 #endregion
 

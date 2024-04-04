@@ -248,12 +248,13 @@ namespace BRIE
 
         #region Sizes
         public static int Resolution { get => Data?.Resolution ?? 0; set => Data.Resolution = value; }
+        public static int ResolutionSquared { get => (int)Math.Pow(Resolution, 2); }
         public static int Size { get => Data?.Size ?? 0; set => Data.Size = value; }
 
         public static Extents Extents { get => Data?.Extents ?? new Extents(); set => Data.Extents = value; }
         public static double TerrainElevationMin { get => Data?.TerrainElevationMin ?? 0; set { Data.TerrainElevationMin = value; } }
         public static double TerrainElevationMax { get => Data?.TerrainElevationMax ?? 0; set { Data.TerrainElevationMax = value; } }
-        public static double TerrainDifference => TerrainElevationMax - TerrainElevationMin;
+        public static double TerrainElevationDelta => TerrainElevationMax - TerrainElevationMin;
 
         #endregion
 

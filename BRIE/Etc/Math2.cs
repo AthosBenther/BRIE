@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows;
 
-namespace BRIE
+namespace BRIE.Etc
 {
     public static class Math2
     {

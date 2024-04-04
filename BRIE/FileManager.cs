@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using BRIE.Dialogs;
 using BRIE.Etc;
@@ -127,7 +128,17 @@ namespace BRIE
             settings.ContractResolver = new IgnoreReadOnlyPropertiesResolver();
             settings.Formatting = Formatting.Indented;
             settings.NullValueHandling = NullValueHandling.Ignore;
-            return JsonConvert.SerializeObject(obj,settings);
+            return JsonConvert.SerializeObject(obj, settings);
+        }
+
+        public static void Start(string FilePath)
+        {
+            if (File.Exists(FilePath))
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = FilePath,
+                    UseShellExecute = true
+                });
         }
     }
 }

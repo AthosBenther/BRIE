@@ -1,11 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Net;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using BRIE.Etc;
 using ImageMagick;
 using static BRIE.Roads;
@@ -14,190 +21,115 @@ namespace BRIE.ImageFormats
 {
     internal static class Png16
     {
-        public static bool ToPng16Parallel(this Roads roads, string FilePath)
+        public static PngBitmapEncoder PngEncoder = new PngBitmapEncoder();
+        public static string FileName = @"C:\Users\athum\AppData\Local\BeamNG.drive\0.31\levels\franka-mini\gray16.png";
+        private static ushort[] png16;
+
+        public static BackgroundWorker RenderWorker(Roads Roads)
         {
+            png16 = new ushort[Project.ResolutionSquared];
+            BackgroundWorker bgw = new BackgroundWorker();
 
-
-
-            MagickImage image = new MagickImage(new MagickColor(ushort.MaxValue, ushort.MaxValue, ushort.MaxValue, 0), Project.Resolution, Project.Resolution);
-
-            Drawables drawables = new Drawables();
-
-
-
-            List<BackgroundWorker> workers = new List<BackgroundWorker>();
-            foreach (Road road in roads.All)
-            {
-                for (int nodeIndex = 0; nodeIndex < road.Nodes.Count - 2; nodeIndex++)
-                {
-                    BackgroundWorker worker = new BackgroundWorker();
-
-                    worker.DoWork += (a, b) =>
-                    {
-                        Road.Node node0 = road.Nodes[nodeIndex];
-                        Road.Node node1 = road.Nodes[nodeIndex + 1];
-
-
-                        ushort color0 = (ushort)(node0.NormalizedElevation * ushort.MaxValue);
-                        MagickColor color = new(color0, color0, color0);
-
-                        RoadSegment rS = new RoadSegment(node0.ScaledPosition.FlipY(), node1.ScaledPosition.FlipY(), 10);
-                        drawables = new Drawables();
-
-                        drawables.FillColor(color).Polygon(rS.Shape);
-
-                        try
-                        {
-                            image.Draw(drawables);
-                        }
-                        catch (Exception ex)
-                        {
-
-                            //throw;
-                        }
-
-                    };
-                    workers.Add(worker);
-                }
-
-            }
-            bool workersBusy = true;
-            workers.ForEach(worker =>
-            {
-
-                worker.RunWorkerCompleted += (a, b) =>
-                {
-                    workersBusy = workers.Any(worker => worker.IsBusy);
-                    if (!workersBusy)
-                    {
-                        image.WriteAsync(FilePath);
-                    }
-                    workers.Remove(worker);
-                };
-                worker.RunWorkerAsync();
-            });
-            while (workersBusy) ;
-            return true;
-        }
-
-        public static BackgroundWorker ToPng16Worker(this Roads roads, string FilePath)
-        {
-            BackgroundWorker bgw = new();
+            bgw.WorkerSupportsCancellation = true;
             bgw.WorkerReportsProgress = true;
-            bgw.DoWork += (a, b) =>
+
+            bgw.DoWork += (obj, arg) =>
             {
-                MagickImage image = new MagickImage(new MagickColor(ushort.MaxValue, ushort.MaxValue, ushort.MaxValue, 0), Project.Resolution, Project.Resolution);
+                ushort[] finalPixels = new ushort[Project.ResolutionSquared];
 
-                Drawables drawables = new Drawables();
-                List<Road> allRoads = roads.All.Take(3).ToList();
-                foreach (Road road in allRoads)
+
+                
+
+                foreach (Road Road in Roads.All)
                 {
-                    int allRoadsCount = allRoads.Count();
-                    for (int nodeIndex = 0; nodeIndex < road.Nodes.Count - 1; nodeIndex++)
+                    for (int nodeIndex = 0; nodeIndex < Road.Nodes.Count - 1; nodeIndex++)
                     {
-
-                        Road.Node node0 = road.Nodes[nodeIndex];
-                        Road.Node node1 = road.Nodes[nodeIndex + 1];
-
-                        int roadNodesCount = road.Nodes.Count();
-
-
-
-                        ushort color0 = (ushort)(node0.NormalizedElevation * ushort.MaxValue);
-                        ushort color1 = (ushort)(node1.NormalizedElevation * ushort.MaxValue);
-                        int subdivisionsQty = Math.Abs(color0 - color1);
-                        MagickColor mcolor0 = new(color0, color0, color0);
-                        MagickColor mcolor1 = new(color1, color1, color1);
-
-                        RoadSegment rS = new RoadSegment(node0.ScaledPosition.FlipY(), node1.ScaledPosition.FlipY(), 10);
-                        double subdivisionLenght = rS.Direction.Length / subdivisionsQty;
-
-                        subdivisionsQty = rS.Direction.Length < subdivisionsQty ? (int)rS.Direction.Length + 1: subdivisionsQty;
-                        subdivisionLenght = rS.Direction.Length < subdivisionsQty ? 1 : subdivisionsQty;
-                        ushort subdivisionsQtyu = (ushort)subdivisionsQty;
-                        Point n0 = node0.ScaledPosition.FlipY();
-                        Point n1 = node1.ScaledPosition.FlipY();
-                        for (ushort i = subdivisionsQtyu; i > 1; i--)
-                        {
-                            double perc = i / (double)subdivisionsQty;
-                            ushort col = (ushort)(color0 + i);
-                            MagickColor mcol = new(col, col, col);
-
-                            Point nS = new(n1.X,n1.Y);
-
-                            nS.X *= perc;
-                            nS.Y *= perc;
-
-                            RoadSegment subdiv = new RoadSegment(n0, nS, 10);
-
-                            drawables = new Drawables();
-
-                            drawables.FillColor(mcol).Polygon(subdiv.Shape);
-                            image.Draw(drawables);
-                            string percs = (perc * 100).ToString("###") + "%";
-                            string roadName = string.IsNullOrWhiteSpace(road.Name) ? road.Name : road.OsmID.ToString();
-                            double roadI = (double)roads.All.IndexOf(road);
-                            double roadsPerc = (( roadI / allRoadsCount) * 100);
-                            bgw.ReportProgress((int)roadsPerc, $"{roadName}({roadI}/{allRoadsCount}): Node {nodeIndex} / {roadNodesCount} | Subdivision {i} / {subdivisionsQty} | {percs}");
-                        }
+                        renderSegment(Road.Nodes[nodeIndex], Road.Nodes[nodeIndex + 1]);
+                        double perc = (double)nodeIndex / Road.Nodes.Count * 100;
+                        bgw.ReportProgress((int)perc, "Generating Segments..");
                     }
-
                 }
 
-                image.WriteAsync(FilePath);
+
+
+                bgw.ReportProgress(-1, "Rendering Png16...");
+                bgw.ReportProgress(100, "Rendering Png16 Done!");
             };
+
             return bgw;
         }
 
-        public static void ToPng16(this Roads roads, string FilePath)
+        private static void renderSegment(Road.Node Start, Road.Node End, int thickness = 10)
         {
-            MagickImage image = new MagickImage(new MagickColor(ushort.MaxValue, ushort.MaxValue, ushort.MaxValue, 0), Project.Resolution, Project.Resolution);
 
-            Drawables drawables = new Drawables();
+            ushort startColor = (ushort)(Start.NormalizedElevation * ushort.MaxValue);
+            ushort endColor = (ushort)(End.NormalizedElevation * ushort.MaxValue);
 
-            foreach (Road road in roads.All)
+            Vector segmentVector = End.ScaledPosition.FlipY() - Start.ScaledPosition.FlipY(); // Corrected the subtraction order
+            double segLength = segmentVector.Length;
+            double segHeightStep = segmentVector.Y / segLength;
+            double segWidthStep = segmentVector.X / segLength; // Corrected variable name
+            double colorDelta = endColor - startColor;
+            double colStep = colorDelta / segLength;
+
+
+
+            for (int i = 0; i < segLength; i++)
             {
-                for (int nodeIndex = 0; nodeIndex < road.Nodes.Count - 1; nodeIndex++)
+                double x = Start.ScaledPosition.X + (segWidthStep * i); // Corrected variable name
+                double y = Start.ScaledPosition.FlipY().Y + (segHeightStep * i); // Corrected variable name
+
+                int stepX = (int)Math.Round(x); // Rounded to the nearest integer
+                int stepY = (int)Math.Round(y); // Rounded to the nearest integer
+
+                for (int j = (int)-thickness / 2; j < thickness / 2; j++)
                 {
-
-                    Road.Node node0 = road.Nodes[nodeIndex];
-                    Road.Node node1 = road.Nodes[nodeIndex + 1];
-
-
-                    ushort color0 = (ushort)(node0.NormalizedElevation * ushort.MaxValue);
-                    ushort color1 = (ushort)(node1.NormalizedElevation * ushort.MaxValue);
-                    int subdivisionsQty = Math.Abs(color0 - color1);
-                    MagickColor mcolor0 = new(color0, color0, color0);
-                    MagickColor mcolor1 = new(color1, color1, color1);
-
-                    RoadSegment rS = new RoadSegment(node0.ScaledPosition.FlipY(), node1.ScaledPosition.FlipY(), 10);
-                    double subdivisionLenght = rS.Direction.Length / subdivisionsQty;
-                    for (ushort i = 1; i < subdivisionsQty; i++)
+                    //if (stepX >= 0 && stepX < maskWidth && stepY >= 0 && stepY < maskHeight) // Check if within bounds
+                    //{
+                    int stepYj = stepY - (int)(segWidthStep * j);
+                    int stepXj = stepX + (int)(segHeightStep * j);
+                    int pixel = stepYj * Project.Resolution + stepXj;
+                    int pixel2 = stepYj * Project.Resolution + stepXj + Project.Resolution;
+                    ushort newColor = (ushort)(startColor + colStep * i);
+                    if (pixel >= 0 && pixel < Project.ResolutionSquared)
                     {
-                        ushort col = (ushort)(color0 + i);
-                        MagickColor mcol = new(col, col, col);
+                        png16[pixel] = LighterPixel(pixel, newColor);
 
-                        Point n1 = node1.ScaledPosition.FlipY();
-
-                        n1.X *= i / subdivisionsQty;
-                        n1.Y *= i / subdivisionsQty;
-
-                        RoadSegment subdiv = new RoadSegment(node0.ScaledPosition.FlipY(), node1.ScaledPosition.FlipY(), 10);
-
-                        drawables = new Drawables();
-
-                        drawables.FillColor(mcol).Polygon(subdiv.Shape);
-                        image.Draw(drawables);
                     }
 
+                    if (pixel2 >= 0 && pixel2 < Project.ResolutionSquared)
+                    {
+                        png16[pixel2] = LighterPixel(pixel2, newColor);
 
-
+                    }
 
                 }
-
             }
 
-            image.WriteAsync(FilePath);
+            //int initpixel = (int)Start.ScaledPosition.Y * Project.Resolution + (int)Start.ScaledPosition.X;
+            //int endpixel = (int)End.ScaledPosition.Y * Project.Resolution + (int)End.ScaledPosition.X;
+        }
+
+        private static ushort LighterPixel(int pixel, ushort newColor)
+        {
+            return Math.Max(newColor, png16[pixel]);
+        }
+
+
+        public static void SaveImage()
+        {
+
+            var bitmap = new WriteableBitmap(Project.Resolution, Project.Resolution, 96, 96, PixelFormats.Gray16, null);
+
+            Int32Rect rect = new Int32Rect(0, 0, Project.Resolution, Project.Resolution);
+            bitmap.WritePixels(rect, png16, Project.Resolution * 2, 0);
+            var bmpf = BitmapFrame.Create(bitmap);
+            var owner = PngEncoder.Dispatcher.Thread.Name;
+            PngEncoder.Frames.Add(bmpf);
+            using (var stream = System.IO.File.Create(FileName))
+                PngEncoder.Save(stream);
+            PngEncoder = new PngBitmapEncoder();
+            FileManager.Start(FileName);
         }
     }
 

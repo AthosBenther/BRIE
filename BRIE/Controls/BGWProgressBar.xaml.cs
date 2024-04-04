@@ -57,7 +57,9 @@ namespace BRIE.Controls
             {
                 if (_progress != value)
                 {
-                    _progress = value;
+                    
+                    _progress = value < 0 ? 0 : value;
+                    Indeterminate = value < 0;
                     OnPropertyChanged(nameof(Progress));
                 }
             }
@@ -78,6 +80,7 @@ namespace BRIE.Controls
         private string _label;
 
         public event PropertyChangedEventHandler? PropertyChanged;
+        public event RunWorkerCompletedEventHandler? RunWorkerCompleted;
 
         public BGWProgressBar()
         {
@@ -94,11 +97,9 @@ namespace BRIE.Controls
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public void RunWorkAsync(BackgroundWorker bgw)
+        public void RunWorkAsync(BackgroundWorker BackgroundWorker)
         {
-            Label = "Bololo";
-            Progress = 25;
-            
+            bgw = BackgroundWorker;
             Visibility = Visibility.Visible;
             if (bgw.WorkerReportsProgress)
             {
@@ -123,7 +124,7 @@ namespace BRIE.Controls
                     IsVisible = bgw.IsBusy? Visibility.Visible : Visibility.Collapsed;
                 };
             }
-
+            bgw.RunWorkerCompleted += RunWorkerCompleted;
             bgw.RunWorkerAsync();
         }
     }
