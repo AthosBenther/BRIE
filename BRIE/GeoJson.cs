@@ -478,10 +478,6 @@ namespace BRIE
             foreach (Feature feature in Features)
             {
                 string osm = feature.Properties.Osm_id;
-                if (osm == "972309200")
-                {
-                    var b = "tbm nao sei mano";
-                }
                 bool ignore = ignoreIds.Contains(feature.Properties.ID) || feature.Properties.Highway == null;
 
 
@@ -627,23 +623,23 @@ namespace BRIE
 
     public class Crs
     {
-        public string Type { get; set; }
-        public CrsProperties Properties { get; set; }
+        public string? Type { get; set; }
+        public CrsProperties? Properties { get; set; }
     }
 
     public class Properties
     {
         public string Osm_id { get; set; }
         public string? Name { get; set; }
-        public string Highway { get; set; }
-        public object Waterway { get; set; }
-        public object Aerialway { get; set; }
-        public object Barrier { get; set; }
-        public object ManMade { get; set; }
-        public object Railway { get; set; }
+        public string? Highway { get; set; }
+        public object? Waterway { get; set; }
+        public object? Aerialway { get; set; }
+        public object? Barrier { get; set; }
+        public object? ManMade { get; set; }
+        public object? Railway { get; set; }
         public int ZOrder { get; set; }
-        public string OtherTags { get; set; }
-        public string GTTRoad { get; set; }
+        public string? OtherTags { get; set; }
+        public string? GTTRoad { get; set; }
         public int ID { get; set; }
         public int ORDER { get; set; }
     }

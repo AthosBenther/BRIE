@@ -180,8 +180,8 @@ namespace BRIE
                 {
                     get
                     {
-                        _position = _position ?? new Point(Helpers.LongitudeToMeters(NormalCoordinate.X) * Parent.ScaleX, Helpers.LatitudeToMeters(NormalCoordinate.Y) * Parent.ScaleY);
-                        return _position.Value;
+                        _scaledPosition = _scaledPosition ?? new Point(Helpers.LongitudeToMeters(NormalCoordinate.X) * Parent.ScaleX, Helpers.LatitudeToMeters(NormalCoordinate.Y) * Parent.ScaleY);
+                        return _scaledPosition.Value;
                     }
                 }
 

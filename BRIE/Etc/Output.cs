@@ -5,13 +5,13 @@ namespace BRIE.Etc
 {
     public class Output : INotifyPropertyChanged
     {
-        private string _text;
+        private string? _text;
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         public string Text
         {
-            get { return _text; }
+            get { return _text ?? ""; }
             private set
             {
                 if (_text != value)
