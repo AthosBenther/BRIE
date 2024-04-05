@@ -24,7 +24,10 @@ namespace BRIE
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    /// 
+
+
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
         private GeoJson geoJson;
         public int canvasSize;
@@ -33,6 +36,23 @@ namespace BRIE
         private Point lastMouseDown;
         public Output Output { get; set; }
 
+        private ProjectData _projectData;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        public ProjectData? ProjectData
+        {
+            get
+            {
+                return
+                    _projectData;
+            }
+            set { _projectData = value; OnPropertyChanged(nameof(ProjectData)); }
+        }
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
         public MainWindow()
         {
             InitializeComponent();
@@ -40,7 +60,6 @@ namespace BRIE
             Output = new();
             CacheFilePath = Environment.ExpandEnvironmentVariables(CacheFilePath);
             sqBkDrop.Visibility = Visibility.Visible;
-
 
             this.Loaded += (obj, e) =>
             {
@@ -55,7 +74,6 @@ namespace BRIE
                 }
                 setMaxRestoreVis();
                 Cache.Initialize(this);
-                Project.PropertyChanged += Project_PropertyChanged;
                 Project.DataChanged += Project_DataChanged;
 
                 Width = Cache.WindowSize.Width;
@@ -90,6 +108,7 @@ namespace BRIE
         private void Project_DataChanged(object? sender, EventArgs e)
         {
             ResetUI();
+            ProjectData = Project.Data;
             tviProjectName.Header = Project.Name;
             if (Project.GeoJsonPath != null)
             {
@@ -99,26 +118,6 @@ namespace BRIE
             if (Project.HeightmapPath != null) loadHeightmap(Project.HeightmapPath);
             if (Project.SatMapPath != null) loadSatMap(Project.SatMapPath);
             if (Project.HeightmapPath != null) loadHeightmap(Project.HeightmapPath);
-        }
-
-        private void Project_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            string prop = e.PropertyName;
-            switch (prop)
-            {
-                case "Name":
-                    tviProjectName.Header = Project.Name;
-                    break;
-                case "Autosave":
-                    chkAutosave.IsChecked = Project.Autosave;
-                    break;
-                case "Resolution":
-                    txtResolution.Text = Project.Resolution.ToString();
-                    SetCanvasSize(Project.Resolution);
-                    break;
-                default:
-                    break;
-            }
         }
 
         private void OpenProjectsDiag()
@@ -276,7 +275,7 @@ namespace BRIE
                 Png16.SaveImage();
             };
             bgwpb.RunWorkAsync(worker);
-            
+
 
             //Diagnostics.MeasureExecutionTime("ToPng16", () => { r.ToPng16(IOPath.Combine(new string[] { root, "Png16.png" })); }, Output);
             //Diagnostics.MeasureExecutionTime("ToPng16Parallel", () => { r.ToPng16Parallel(IOPath.Combine(new string[] { root, "Png16Para.png" })); }, Output);
@@ -439,7 +438,7 @@ namespace BRIE
 
         private void drawingCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ChangedButton == MouseButton.Left)
+            if (e.ChangedButton == MouseButton.Left && Keyboard.IsKeyDown(Key.Space))
             {
                 isDragging = true;
                 lastMouseDown = e.GetPosition(scrl);
@@ -471,21 +470,6 @@ namespace BRIE
             {
                 isDragging = false;
                 drawingCanvas.ReleaseMouseCapture();
-            }
-        }
-
-
-        private void TxtResolution_PreviewTextInput(object sender, TextCompositionEventArgs e)
-        {
-            // Allowing only numeric characters
-            if (!char.IsDigit(e.Text, e.Text.Length - 1))
-            {
-                btnApplyRes.IsEnabled = false;
-                e.Handled = true; // Ignore the input
-            }
-            else
-            {
-                btnApplyRes.IsEnabled = true;
             }
         }
 

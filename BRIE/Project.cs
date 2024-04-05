@@ -138,6 +138,17 @@ namespace BRIE
             }
         }
 
+
+        private double _terrainElevationMax;
+        public double TerrainElevationMax
+        {
+            get => _terrainElevationMax; set
+            {
+                _terrainElevationMax = value;
+                OnPropertyChanged(nameof(TerrainElevationMax));
+            }
+        }
+
         private double _terrainElevationMin;
 
         public double TerrainElevationMin
@@ -146,7 +157,7 @@ namespace BRIE
             set
             {
                 _terrainElevationMin = value;
-                OnPropertyChanged(nameof(Autosave));
+                OnPropertyChanged(nameof(TerrainElevationMin));
             }
         }
 
@@ -164,15 +175,7 @@ namespace BRIE
 
 
 
-        private double _terrainElevationMax;
-        public double TerrainElevationMax
-        {
-            get => _terrainElevationMax; set
-            {
-                _terrainElevationMax = value;
-                OnPropertyChanged(nameof(Autosave));
-            }
-        }
+        
         #endregion
 
         #region Configs
@@ -233,7 +236,7 @@ namespace BRIE
         public static event PropertyChangedEventHandler PropertyChanged;
         public static event EventHandler DataChanged;
 
-        public static ProjectData Data;
+        public static ProjectData? Data { get; set; }
         public static bool IsInitialized { get => Data != null; }
         public static string? Name { get { return Data?.Name; } set { Data.Name = value; } }
 

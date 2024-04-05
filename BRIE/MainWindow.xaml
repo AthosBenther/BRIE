@@ -40,7 +40,8 @@
         <DockPanel Grid.Column="1" Grid.Row="1" Margin="5,0,0,0" Background="#FFEEEEF2" Grid.RowSpan="2">
             <Grid Margin="0,5,5,5">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="2*" MinHeight="250"/>
+                    <RowDefinition Height="auto" MinHeight="250"/>
+                    <RowDefinition Height="auto" MinHeight="150"/>
                     <RowDefinition Height="1*" MinHeight="32"/>
                 </Grid.RowDefinitions>
 
@@ -56,16 +57,22 @@
                     <Rectangle Margin="0,0,0,0" Stroke="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" Grid.ColumnSpan="2" Grid.RowSpan="2" Fill="#FFEEEEF2" />
                     <!--<Rectangle Margin="1" Grid.ColumnSpan="2" Grid.Row="1" Fill="WhiteSmoke" />-->
                     <TextBlock Margin="8,4" Text="Project Properties"/>
-                    <StackPanel Margin="3" Grid.Row="1" Grid.ColumnSpan="2" Background="Transparent">
-                        <TreeView Background="WhiteSmoke">
+                    <StackPanel Margin="1" Grid.Row="1" Grid.ColumnSpan="2" Background="Transparent">
+                        <TreeView Background="WhiteSmoke" BorderBrush="{x:Null}" >
                             <TreeViewItem x:Name="tviProjectName" HorizontalAlignment="Stretch" Header="Unsaved Project" BorderThickness="0" IsExpanded="True">
                                 <Grid>
                                     <StackPanel>
                                         <TreeViewItem Header="Layers" BorderThickness="0" IsExpanded="True">
                                             <StackPanel Margin="0 0 6 0">
-                                                <Controls:CanvasLayerControl Margin="0 2 0 0" CanOpenFile="False" CanExportFile="False" CanSaveFile="False" Label="Road Lines" TargetCanvas="{Binding ElementName=linesCanvas}"/>
-                                                <Controls:CanvasLayerControl Margin="0 2 0 0" CanSaveFile="False" Label="GeoRoads"                                             TargetCanvas="{Binding ElementName=geoRoadsCanvas}" OpenFileClick="OpenGeoJSON_Click" ExportFileClick="ExportFileClick"/>
-                                                <Controls:CanvasLayerControl Margin="0 2 0 0" CanSaveFile="False" CanExportFile="False" Label="HeightMap"                      TargetCanvas="{Binding ElementName=hmCanvas}" OpenFileClick="OpenHeightMap_Click" />
+                                                <TreeViewItem  BorderThickness="0" IsExpanded="True" >
+                                                    <TreeViewItem.Header>
+                                                        <Controls:CanvasLayerControl x:Name="clcRoads" Margin="0 2 0 0" CanOpenFile="False" CanExportFile="False" CanSaveFile="False" Label="Roads" TargetCanvas="{Binding ElementName=linesCanvas}"/>
+                                                    </TreeViewItem.Header>
+                                                    <StackPanel Name="stkRoads" Margin="1 0 0 0">
+                                                        <Controls:CanvasLayerControl Margin="0 2 0 0"  CanSaveFile="False" Label="Heightmap" TargetCanvas="{Binding ElementName=geoRoadsCanvas}" OpenFileClick="OpenGeoJSON_Click" ExportFileClick="ExportFileClick"/>
+                                                    </StackPanel>
+                                                </TreeViewItem>
+                                                <Controls:CanvasLayerControl Margin="0 2 0 0" CanSaveFile="False" CanExportFile="False" Label="Terrain HeightMap"                      TargetCanvas="{Binding ElementName=hmCanvas}" OpenFileClick="OpenHeightMap_Click" />
                                                 <Controls:CanvasLayerControl Margin="0 2 0 0" CanSaveFile="False" CanExportFile="False" Label="SatMap"                         TargetCanvas="{Binding ElementName=smCanvas}" OpenFileClick="OpenSatMap_Click" />
                                             </StackPanel>
                                         </TreeViewItem>
@@ -73,55 +80,77 @@
 
                                             <StackPanel Margin="5 5">
                                                 <Grid Margin="0 5 0 0">
+                                                    <TextBlock VerticalAlignment="Center" Text="Autosave" HorizontalAlignment="Left"/>
+                                                    <CheckBox x:Name="chkAutosave" IsChecked="True" Margin="0 2" VerticalAlignment="Center" HorizontalAlignment="Right" Height="16" Width="16"/>
+                                                </Grid>
+                                                <Grid Margin="0 5 0 0">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="Resolution (px)" Grid.ColumnSpan="3"/>
-                                                    <TextBox x:Name="txtResolution" Text="8192" HorizontalAlignment="Left" Grid.Column="1" Width="32" PreviewTextInput="TxtResolution_PreviewTextInput" InputScope="Number"/>
-                                                    <Button x:Name="btnApplyRes" Content="&#xE8FB;" FontFamily="Segoe MDL2 Assets" Padding="2" HorizontalAlignment="Left" Grid.Column="2" Click="btnApplyRes_Click"/>
-
-
+                                                    <TextBox x:Name="txtResolution" Text="{Binding ProjectData.Resolution}" HorizontalAlignment="Left" Grid.Column="1" Width="32" InputScope="Number"/>
                                                 </Grid>
-                                                <Grid Margin="0 5 0 0" IsEnabled="False">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Max Terrain Elevation" Grid.ColumnSpan="3"/>
-                                                    <TextBox x:Name="txtMaxTerrEle" HorizontalAlignment="Center" Grid.Column="1" Width="32" Text="{Binding TerrainElevationMax, Mode=TwoWay, StringFormat=\{0:F0\}, ValidatesOnNotifyDataErrors=False}">
-                                                        <TextBox.DataContext>
-                                                            <local:Project/>
-                                                        </TextBox.DataContext>
-                                                    </TextBox>
-                                                    <Button x:Name="btnMaxTerrEle" Content="&#xE8FB;" FontFamily="Segoe MDL2 Assets" Padding="2" HorizontalAlignment="Left" Grid.Column="2" Click="btnApplyRes_Click"/>
-
-
-                                                </Grid>
-                                                <!--<Grid Margin="0 5 0 0" IsEnabled="False">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Min Terrain Elevation" Grid.ColumnSpan="3"/>
-                                                    <TextBox x:Name="txtMinTerrEle" Text="0" HorizontalAlignment="Left" Grid.Column="1" Width="32" PreviewTextInput="TerrEle_PreviewTextInput" InputScope="Number"/>
-                                                    <Button x:Name="btnMinTerrEle" Content="&#xE8FB;" FontFamily="Segoe MDL2 Assets" Padding="2" HorizontalAlignment="Left" Grid.Column="2" Click="btnApplyMinTerrEle_Click"/>
-
-
-                                                </Grid>-->
-                                                <Grid Margin="0 5 0 0">
-                                                    <TextBlock VerticalAlignment="Center" Text="Autosave" HorizontalAlignment="Left"/>
-                                                    <CheckBox x:Name="chkAutosave" IsChecked="True" Margin="0 2" VerticalAlignment="Center" HorizontalAlignment="Right" Height="16" Width="16"/>
-                                                </Grid>
+                                                <TreeViewItem Header="Terrain Elevation (meters)" IsExpanded="true">
+                                                    <Grid Margin="0 5 0 0">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="Max" Grid.ColumnSpan="3"/>
+                                                        <TextBox Text="{Binding ProjectData.TerrainElevationMax}" HorizontalAlignment="Center" Grid.Column="1" MinWidth="128" />
+                                                    </Grid>
+                                                    <Grid Margin="0 5 0 0">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="Min" Grid.ColumnSpan="3"/>
+                                                        <TextBox Text="{Binding ProjectData.TerrainElevationMin}" HorizontalAlignment="Left" Grid.Column="1" MinWidth="128" InputScope="Number"/>
+                                                    </Grid>
+                                                </TreeViewItem>
+                                                <TreeViewItem Header="Map Constraints (decimal coordinates)" IsExpanded="true">
+                                                    <Grid Margin="0 5 0 0">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="West" Grid.ColumnSpan="3"/>
+                                                        <TextBox Text="{Binding ProjectData.Extents.West}" HorizontalAlignment="Center" Grid.Column="1" MinWidth="128" />
+                                                    </Grid>
+                                                    <Grid Margin="0 5 0 0">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="North" Grid.ColumnSpan="3"/>
+                                                        <TextBox Text="{Binding ProjectData.Extents.North}" HorizontalAlignment="Left" Grid.Column="1" MinWidth="128" InputScope="Number"/>
+                                                    </Grid>
+                                                    <Grid Margin="0 5 0 0">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="East" Grid.ColumnSpan="3"/>
+                                                        <TextBox Text="{Binding ProjectData.Extents.East}" HorizontalAlignment="Left" Grid.Column="1" MinWidth="128" InputScope="Number"/>
+                                                    </Grid>
+                                                    <Grid Margin="0 5 0 0">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="West" Grid.ColumnSpan="3"/>
+                                                        <TextBox Text="{Binding ProjectData.Extents.West}" HorizontalAlignment="Left" Grid.Column="1" MinWidth="128" InputScope="Number"/>
+                                                    </Grid>
+                                                </TreeViewItem>
                                             </StackPanel>
-
-                                        </TreeViewItem>
-                                        <TreeViewItem Header="Project Info" BorderThickness="0" IsExpanded="True">
-                                            <TextBlock/>
-
                                         </TreeViewItem>
                                     </StackPanel>
                                 </Grid>
@@ -134,7 +163,7 @@
                 <Grid Grid.Row="1" Margin="0,5,0,0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto"/>
-                        <RowDefinition/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -142,8 +171,29 @@
                     </Grid.ColumnDefinitions>
                     <Rectangle Margin="0,0,0,0" Stroke="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" Grid.ColumnSpan="2" Grid.RowSpan="2" Fill="#FFEEEEF2" />
                     <Rectangle Margin="1" Grid.ColumnSpan="2" Grid.Row="1" Fill="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" />
+                    <TextBlock Margin="8,4" Text="Node Editor"/>
+                    <StackPanel Margin="1" Grid.Row="1" Grid.ColumnSpan="2" Background="Transparent">
+                        <TreeView Background="WhiteSmoke" BorderBrush="{x:Null}">
+                            <TreeViewItem HorizontalAlignment="Stretch" Header="Node" BorderThickness="0" IsExpanded="True">
+                                <TextBlock Text="alala"/>
+                            </TreeViewItem>
+                        </TreeView>
+
+                    </StackPanel>
+                </Grid>
+                <GridSplitter ResizeDirection="Rows" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Row="2" Grid.ColumnSpan="2" Height="5" Background="Transparent"/>
+                <Grid Grid.Row="2" Margin="0,5,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Rectangle Margin="0,0,0,0" Stroke="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" Grid.ColumnSpan="2" Grid.RowSpan="2" Fill="#FFEEEEF2" />
                     <TextBlock Margin="8,4" Text="Output"/>
-                    <ScrollViewer Margin="1,2" Grid.Row="1" Grid.ColumnSpan="2">
+                    <ScrollViewer Margin="1" Grid.Row="1" Grid.ColumnSpan="2">
                         <ScrollViewer.Resources>
                             <sys:Double x:Key="{x:Static SystemParameters.VerticalScrollBarWidthKey}">8</sys:Double>
                         </ScrollViewer.Resources>
@@ -171,7 +221,7 @@
         </Grid>
         <GridSplitter HorizontalAlignment="Left" Grid.Row="1" Grid.Column="1" Width="5" Background="#FFEEEEF2" Grid.RowSpan="2"/>
         <Grid Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Grid.Row="3">
-            
+
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Controls:BGWProgressBar x:Name="bgwpb" Width="500"/>
                 <Button Margin="4 0 0 0" Content="&#xE71F;" FontFamily="Segoe MDL2 Assets" Background="Transparent" BorderBrush="Transparent" Click="DecZoom_Click"/>
