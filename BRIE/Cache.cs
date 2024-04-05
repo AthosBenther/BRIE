@@ -36,13 +36,21 @@ namespace BRIE
 
         public static Size WindowSize
         {
-            get { return Data.WindowSize; }
+            get
+            {
+                if (Data.WindowSize.Width <= 0 || Data.WindowSize.Height <= 0) Data.WindowSize = new Size(800, 600);
+                return Data.WindowSize;
+            }
             set { Data.WindowSize = value; Save(); }
         }
 
         public static Point WindowPosition
         {
-            get { return Data.WindowPosition; }
+            get
+            {
+                if (isPointOutOfBounds(Data.WindowPosition)) Data.WindowPosition = new Point(0, 0);
+                return Data.WindowPosition;
+            }
             set { Data.WindowPosition = value; Save(); }
         }
 
@@ -160,6 +168,17 @@ namespace BRIE
             WindowPosition = new Point(w.Left, w.Top);
 
             Save();
+        }
+
+        private static bool isPointOutOfBounds(Point point)
+        {
+            double screenWidth = SystemParameters.PrimaryScreenWidth;
+            double screenHeight = SystemParameters.PrimaryScreenHeight;
+
+            return point.X < 0 || point.X > screenWidth ||
+                                   point.Y < 0 || point.Y > screenHeight;
+
+
         }
     }
 }
