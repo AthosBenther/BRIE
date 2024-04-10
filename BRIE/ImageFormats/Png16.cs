@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -13,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using BRIE.ClassExtensions;
 using BRIE.Etc;
 using ImageMagick;
 using static BRIE.Roads;
@@ -23,11 +25,16 @@ namespace BRIE.ImageFormats
     {
         public static PngBitmapEncoder PngEncoder = new PngBitmapEncoder();
         public static string FileName = @"C:\Users\athum\AppData\Local\BeamNG.drive\0.31\levels\franka-mini\gray16.png";
-        private static ushort[] png16;
+        public static string InterFileName = @"C:\Users\athum\AppData\Local\BeamNG.drive\0.31\levels\franka-mini\gray16Inter.png";
+        public static string MaskFileName = @"C:\Users\athum\AppData\Local\BeamNG.drive\0.31\levels\franka-mini\gray16Mask.png";
+        private static ushort[]? png16;
+        private static ushort[]? png16mask;
 
         public static BackgroundWorker RenderWorker(Roads Roads)
         {
             png16 = new ushort[Project.ResolutionSquared];
+            png16mask = new ushort[Project.ResolutionSquared];
+
             BackgroundWorker bgw = new BackgroundWorker();
 
             bgw.WorkerSupportsCancellation = true;
@@ -35,19 +42,16 @@ namespace BRIE.ImageFormats
 
             bgw.DoWork += (obj, arg) =>
             {
-                ushort[] finalPixels = new ushort[Project.ResolutionSquared];
-
-
-                
-
-                foreach (Road Road in Roads.All)
+                png16 = new ushort[Project.ResolutionSquared];
+                for (int roadIndex = 0; roadIndex < Roads.All.Count - 1; roadIndex++)
                 {
+                    Road Road = Roads.All[roadIndex];
                     for (int nodeIndex = 0; nodeIndex < Road.Nodes.Count - 1; nodeIndex++)
                     {
                         renderSegment(Road.Nodes[nodeIndex], Road.Nodes[nodeIndex + 1]);
-                        double perc = (double)nodeIndex / Road.Nodes.Count * 100;
-                        bgw.ReportProgress((int)perc, "Generating Segments..");
                     }
+                    double perc = (double)roadIndex / Roads.All.Count * 100;
+                    bgw.ReportProgress((int)perc, "Generating Segments..");
                 }
 
 
@@ -65,8 +69,13 @@ namespace BRIE.ImageFormats
             ushort startColor = (ushort)(Start.NormalizedElevation * ushort.MaxValue);
             ushort endColor = (ushort)(End.NormalizedElevation * ushort.MaxValue);
 
+
+
+
             Vector segmentVector = End.ScaledPosition.FlipY() - Start.ScaledPosition.FlipY(); // Corrected the subtraction order
+
             double segLength = segmentVector.Length;
+            int segPixelLength = (int)Math.Round(segmentVector.Length);
             double segHeightStep = segmentVector.Y / segLength;
             double segWidthStep = segmentVector.X / segLength; // Corrected variable name
             double colorDelta = endColor - startColor;
@@ -74,42 +83,110 @@ namespace BRIE.ImageFormats
 
 
 
-            for (int i = 0; i < segLength; i++)
+            for (int i = 0; i <= (int)segLength; i += 1)
             {
-                double x = Start.ScaledPosition.X + (segWidthStep * i); // Corrected variable name
-                double y = Start.ScaledPosition.FlipY().Y + (segHeightStep * i); // Corrected variable name
+                double x = Start.ScaledPosition.X + (segWidthStep * i);
+                double y = Start.ScaledPosition.FlipY().Y + (segHeightStep * i);
 
-                int stepX = (int)Math.Round(x); // Rounded to the nearest integer
-                int stepY = (int)Math.Round(y); // Rounded to the nearest integer
+                int stepX = (int)Math.Round(x);
+                int stepY = (int)Math.Round(y);
 
-                for (int j = (int)-thickness / 2; j < thickness / 2; j++)
+                ushort newColor = (ushort)(startColor + colStep * i);
+
+                //Draws the line
+                //DrawPixel(stepX, stepY, newColor);
+
+
+                // Draw perpendicular lines
+                for (int j = -thickness / 2; j <= thickness / 2; j++)
                 {
-                    //if (stepX >= 0 && stepX < maskWidth && stepY >= 0 && stepY < maskHeight) // Check if within bounds
-                    //{
-                    int stepYj = stepY - (int)(segWidthStep * j);
-                    int stepXj = stepX + (int)(segHeightStep * j);
-                    int pixel = stepYj * Project.Resolution + stepXj;
-                    int pixel2 = stepYj * Project.Resolution + stepXj + Project.Resolution;
-                    ushort newColor = (ushort)(startColor + colStep * i);
-                    if (pixel >= 0 && pixel < Project.ResolutionSquared)
-                    {
-                        png16[pixel] = LighterPixel(pixel, newColor);
+                    double preciseStepYj = stepY - segWidthStep * j;
+                    double preciseStepXj = stepX + segHeightStep * j;
 
-                    }
+                    double preciseNextStepYj = stepY - segWidthStep * (j + 1);
+                    double preciseNextStepXj = stepX + segHeightStep * (j + 1);
 
-                    if (pixel2 >= 0 && pixel2 < Project.ResolutionSquared)
-                    {
-                        png16[pixel2] = LighterPixel(pixel2, newColor);
 
-                    }
+                    int perpStepX = (int)Math.Round(preciseStepXj);
+                    int perpStepY = (int)Math.Round(preciseStepYj);
+                    Point perpStep = new(perpStepX, perpStepY);
+
+                    int perpNextStepX = (int)Math.Round(preciseNextStepXj);
+                    int perpNextStepY = (int)Math.Round(preciseNextStepYj);
+                    Point perpNextStep = new(perpNextStepX, perpNextStepY);
+
+                    Point perpInterStepX = new(perpNextStepX, perpStepY);
+                    Point perpInterStepY = new(perpStepX, perpNextStepY);
+
+
+
+
+                    if (perpInterStepX != perpNextStep && perpInterStepX != perpStep)
+                        DrawPixel(perpInterStepX, newColor);
+
+                    if (perpInterStepY != perpNextStep && perpInterStepY != perpStep)
+                        DrawPixel(perpInterStepY, newColor);
+
+                    // Draw the perpendicular pixel
+                    DrawPixel(perpStepX, perpStepY, newColor);
 
                 }
             }
 
-            //int initpixel = (int)Start.ScaledPosition.Y * Project.Resolution + (int)Start.ScaledPosition.X;
-            //int endpixel = (int)End.ScaledPosition.Y * Project.Resolution + (int)End.ScaledPosition.X;
         }
 
+        private static void DrawPixel(int pixelIndex, ushort color)
+        {
+            if (pixelIndex >= 0 && pixelIndex < Project.ResolutionSquared)
+            {
+                png16[pixelIndex] = color;
+                png16mask[pixelIndex] = ushort.MaxValue;
+            }
+        }
+
+        private static void DrawPixel(int x, int y, ushort color) => Png16.DrawPixel(GetPixelIndex(x, y), color);
+        private static void DrawPixel(Point s, ushort color) => Png16.DrawPixel(GetPixelIndex((int)s.X, (int)s.Y), color);
+
+
+
+        public static int GetPixelIndex(int x, int y)
+        {
+            return y * Project.Resolution + x;
+        }
+
+        //public static void DrawLine(Point Start, Point End, ushort startColor) => DrawLine(Start, End, startColor, startColor);
+
+        private static Point[] GetPerpendicular(Point center, double normal, double length, bool anti = false)
+        {
+            // Convert normal angle to radians
+            double degs = (normal + 90) % 360;
+            double radians = degs * Math.PI / 180;
+
+            // Calculate the endpoint coordinates
+            double cos = Math.Cos(radians);
+            double sin = Math.Sin(radians);
+            double endX = center.X + length * cos;
+            double endY = center.Y + length * sin;
+
+            if (anti)
+            {
+                // Create the line
+                return new Point[2]
+                {
+                    new(center.X - (endX - center.X), center.Y - (endY - center.Y)),
+                    new(endX, endY)
+                };
+            }
+            else
+            {
+                // Create the line
+                return new Point[2]
+                {
+                    new(center.X - (endX - center.X), center.Y - (endY - center.Y)),
+                    new(endX,endY)
+                };
+            }
+        }
         private static ushort LighterPixel(int pixel, ushort newColor)
         {
             return Math.Max(newColor, png16[pixel]);
@@ -124,13 +201,31 @@ namespace BRIE.ImageFormats
             Int32Rect rect = new Int32Rect(0, 0, Project.Resolution, Project.Resolution);
             bitmap.WritePixels(rect, png16, Project.Resolution * 2, 0);
             var bmpf = BitmapFrame.Create(bitmap);
-            var owner = PngEncoder.Dispatcher.Thread.Name;
+            PngEncoder.Frames.Clear();
             PngEncoder.Frames.Add(bmpf);
             using (var stream = System.IO.File.Create(FileName))
                 PngEncoder.Save(stream);
             PngEncoder = new PngBitmapEncoder();
-            FileManager.Start(FileName);
+            png16 = new ushort[Project.ResolutionSquared];
+            //FileManager.Start(FileName);
         }
+
+        public static void SaveMaskImage()
+        {
+
+            var bitmap = new WriteableBitmap(Project.Resolution, Project.Resolution, 96, 96, PixelFormats.Gray16, null);
+
+            Int32Rect rect = new Int32Rect(0, 0, Project.Resolution, Project.Resolution);
+            bitmap.WritePixels(rect, png16mask, Project.Resolution * 2, 0);
+            var bmpf = BitmapFrame.Create(bitmap);
+            PngEncoder.Frames.Clear();
+            PngEncoder.Frames.Add(bmpf);
+            using (var stream = System.IO.File.Create(MaskFileName))
+                PngEncoder.Save(stream);
+            PngEncoder = new PngBitmapEncoder();
+            //FileManager.Start(MaskFileName);
+        }
+
     }
 
     public class RoadSegment
@@ -160,7 +255,6 @@ namespace BRIE.ImageFormats
                 return degrees;
             }
         }
-
         public PointD[] Shape
         {
             get
