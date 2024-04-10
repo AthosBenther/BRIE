@@ -269,16 +269,13 @@ namespace BRIE
             Roads r = new Roads(geoJson);
             string root = Directory.GetParent(Project.ProjectPath).FullName;
             var worker = Png16.RenderWorker(r);
-            worker.RunWorkerCompleted += (obj, arg) =>
+            
+            bgwpb.RunWorkerCompleted += (obj, arg) =>
             {
-                worker.Dispose();
                 Png16.SaveImage();
+                Png16.SaveMaskImage();
             };
             bgwpb.RunWorkAsync(worker);
-
-
-            //Diagnostics.MeasureExecutionTime("ToPng16", () => { r.ToPng16(IOPath.Combine(new string[] { root, "Png16.png" })); }, Output);
-            //Diagnostics.MeasureExecutionTime("ToPng16Parallel", () => { r.ToPng16Parallel(IOPath.Combine(new string[] { root, "Png16Para.png" })); }, Output);
         }
         #endregion
 

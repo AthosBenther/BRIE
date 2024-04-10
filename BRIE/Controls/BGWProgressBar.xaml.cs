@@ -110,6 +110,7 @@ namespace BRIE.Controls
 
         private void Bgw_RunWorkerCompleted(object? sender, RunWorkerCompletedEventArgs e)
         {
+            
             Timer timer = new Timer();
             timer.Elapsed += (o, e) => Application.Current.Dispatcher.Invoke(() =>
                                         {
@@ -121,6 +122,7 @@ namespace BRIE.Controls
             timer.Interval = 3000;
             timer.Start();
             RunWorkerCompleted?.Invoke(this, e);
+            RunWorkerCompleted = null;
         }
 
         private void OnPropertyChanged(string propertyName)
