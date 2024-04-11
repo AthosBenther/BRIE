@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using BRIE.Dialogs;
 using BRIE.Etc;
-using BRIE.ImageFormats;
+using BRIE.ExportFormats;
 using Microsoft.Win32;
 using static BRIE.Roads;
 using IOPath = System.IO.Path;
@@ -266,16 +266,25 @@ namespace BRIE
         private void Save16BitImage()
         {
 
-            Roads r = new Roads(geoJson);
-            string root = Directory.GetParent(Project.ProjectPath).FullName;
-            var worker = Png16.RenderWorker(r);
-            
-            bgwpb.RunWorkerCompleted += (obj, arg) =>
+            ExportDialog exdiag = new ExportDialog(new Roads(geoJson))
             {
-                Png16.SaveImage();
-                Png16.SaveMaskImage();
+                Owner = this,
+                WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                ShowInTaskbar = false
             };
-            bgwpb.RunWorkAsync(worker);
+
+            exdiag.ShowDialog();
+
+            //Roads r = new Roads(geoJson);
+            //string root = Directory.GetParent(Project.ProjectPath).FullName;
+            //var worker = Png16.RenderWorker(r);
+            
+            //bgwpb.RunWorkerCompleted += (obj, arg) =>
+            //{
+            //    Png16.SaveImage();
+            //    Png16.SaveMaskImage();
+            //};
+            //bgwpb.RunWorkAsync(worker);
         }
         #endregion
 

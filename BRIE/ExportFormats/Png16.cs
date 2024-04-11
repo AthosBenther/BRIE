@@ -1,31 +1,18 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
-using System.Net;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using System.Windows.Threading;
-using BRIE.ClassExtensions;
 using BRIE.Etc;
 using ImageMagick;
 using static BRIE.Roads;
 
-namespace BRIE.ImageFormats
+namespace BRIE.ExportFormats
 {
     internal static class Png16
     {
         public static PngBitmapEncoder PngEncoder = new PngBitmapEncoder();
         public static string FileName = @"C:\Users\athum\AppData\Local\BeamNG.drive\0.31\levels\franka-mini\gray16.png";
-        public static string InterFileName = @"C:\Users\athum\AppData\Local\BeamNG.drive\0.31\levels\franka-mini\gray16Inter.png";
         public static string MaskFileName = @"C:\Users\athum\AppData\Local\BeamNG.drive\0.31\levels\franka-mini\gray16Mask.png";
         private static ushort[]? png16;
         private static ushort[]? png16mask;
@@ -192,7 +179,15 @@ namespace BRIE.ImageFormats
             return Math.Max(newColor, png16[pixel]);
         }
 
+        public static BitmapFrame RenderImage()
+        {
+            var bitmap = new WriteableBitmap(Project.Resolution, Project.Resolution, 96, 96, PixelFormats.Gray16, null);
 
+            Int32Rect rect = new Int32Rect(0, 0, Project.Resolution, Project.Resolution);
+
+            bitmap.WritePixels(rect, png16, Project.Resolution * 2, 0);
+            return BitmapFrame.Create(bitmap);
+        }
         public static void SaveImage()
         {
 

@@ -6,7 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using BRIE.Etc;
-using BRIE.ImageFormats;
+using BRIE.ExportFormats;
 using BRIE.Types;
 using ImageMagick;
 using Newtonsoft.Json;
