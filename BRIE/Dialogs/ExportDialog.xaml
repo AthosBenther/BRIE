@@ -49,7 +49,7 @@
             </Grid.RowDefinitions>
             <StackPanel>
                 <TextBlock Margin="0,0,0,10" Text="Options" FontSize="18"/>
-                <Grid Margin=" 0 2 0 6">
+                <Grid Margin=" 0 2 0 6" IsEnabled="False">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="*"/>
@@ -89,14 +89,13 @@
                         <ColumnDefinition Width="439*"/>
                         <ColumnDefinition Width="auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBox Grid.ColumnSpan="1" Margin="2"/>
-                    <Button Padding="2" Margin="2" Content="&#xEC50;" FontFamily="Segoe MDL2 Assets" FontSize="14" Grid.Column="2"/>
+                    <TextBox Grid.ColumnSpan="1" Margin="2" Text="{Binding FilePath}" TextChanged="FileName_TextChanged" />
+                    <Button Padding="2" Margin="2" Content="&#xEC50;" FontFamily="Segoe MDL2 Assets" FontSize="14" Grid.Column="2" Click="OpenFile_Click"/>
                 </Grid>
 
 
             </StackPanel>
-            <Button
-                        HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" BorderThickness="0" Click="Export_Click" Grid.Row="1">
+            <Button x:Name="btnExport" IsEnabled="False" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" BorderThickness="0" Click="Export_Click" Grid.Row="1">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>

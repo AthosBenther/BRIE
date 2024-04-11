@@ -31,9 +31,22 @@ namespace BRIE.Dialogs
             get => _bmpFrame; set
             {
                 _bmpFrame = value;
-                OnPropertyChanged("BmpFrame");
+                OnPropertyChanged(nameof(BmpFrame));
             }
         }
+
+        private string _filePath;
+
+        public string FilePath
+        {
+            get { return _filePath; }
+            set
+            {
+                _filePath = value;
+                OnPropertyChanged(nameof(FilePath));
+            }
+        }
+
 
         public Roads Roads;
         public ExportDialog(Roads roads)
@@ -82,5 +95,16 @@ namespace BRIE.Dialogs
             }
         }
 
+        private void OpenFile_Click(object sender, RoutedEventArgs e)
+        {
+            FilePath = FileManager.NewFile("PNG files (*.png)|*.png", Project.ProjectPath);
+        }
+
+        private void FileName_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            string path = (sender as TextBox).Text;
+
+            btnExport.IsEnabled = FileManager.IsPathValid(path);
+        }
     }
 }

@@ -201,8 +201,6 @@ namespace BRIE.ExportFormats
             using (var stream = System.IO.File.Create(FileName))
                 PngEncoder.Save(stream);
             PngEncoder = new PngBitmapEncoder();
-            png16 = new ushort[Project.ResolutionSquared];
-            //FileManager.Start(FileName);
         }
 
         public static void SaveMaskImage()

@@ -273,12 +273,16 @@ namespace BRIE
                 ShowInTaskbar = false
             };
 
+            sqBkDrop.Visibility = Visibility.Visible;
+
             exdiag.ShowDialog();
+
+            sqBkDrop.Visibility = Visibility.Collapsed;
 
             //Roads r = new Roads(geoJson);
             //string root = Directory.GetParent(Project.ProjectPath).FullName;
             //var worker = Png16.RenderWorker(r);
-            
+
             //bgwpb.RunWorkerCompleted += (obj, arg) =>
             //{
             //    Png16.SaveImage();
