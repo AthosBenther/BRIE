@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -13,7 +14,11 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using BRIE.Export;
+using BRIE.Export;
 using BRIE.ExportFormats;
+using BRIE.ExportFormats.FileFormats.Meta;
+using Image = BRIE.Export.Image;
 
 namespace BRIE.Dialogs
 {
@@ -47,6 +52,20 @@ namespace BRIE.Dialogs
             }
         }
 
+        //private ObservableCollection<string> _fileFormats = new() { "a", "b" };
+        public List<string> FileFormats => Image.FormatsExtensions;
+
+        public List<string> _pixelFormats;
+        public List<string> PixelFormats
+        {
+            get => _pixelFormats;
+            set
+            {
+                _pixelFormats = value;
+                OnPropertyChanged(nameof(PixelFormats));
+            }
+        }
+
 
         public Roads Roads;
         public ExportDialog(Roads roads)
@@ -54,17 +73,19 @@ namespace BRIE.Dialogs
             InitializeComponent();
             DataContext = this;
 
+
             Roads = roads;
-            GetImagePreview();
         }
 
         private void GetImagePreview()
         {
-            var worker = Png16.RenderWorker(Roads);
+            var worker = Image.RenderWorker(Roads);
+
+            BmpFrame = null;
 
             bgwpb.RunWorkerCompleted += (obj, arg) =>
             {
-                BmpFrame = Png16.RenderImage();
+                BmpFrame = Image.RenderImage();
             };
             bgwpb.RunWorkAsync(worker);
         }
@@ -76,7 +97,7 @@ namespace BRIE.Dialogs
 
         private void Export_Click(object sender, RoutedEventArgs e)
         {
-            Png16.SaveImage();
+            Image.Save(FilePath);
         }
 
         private void Close_Click(object sender, RoutedEventArgs e)
@@ -105,6 +126,22 @@ namespace BRIE.Dialogs
             string path = (sender as TextBox).Text;
 
             btnExport.IsEnabled = FileManager.IsPathValid(path);
+        }
+
+        private void Extension_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            var format = Image.Formats.FirstOrDefault(f => f.ShortName == e.AddedItems[0]);
+            Image.FileFormat = format;
+            Image.Encoder = format.Encoder;
+            PixelFormats = Image.FileFormat.ValidPixelFormats.Select(pf => pf.ToString()).ToList();
+            cbbxPixelFormats.SelectedIndex = 0;
+        }
+
+        private void PixelFormat_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            Image.PixelFormat = Image.FileFormat.ValidPixelFormats.FirstOrDefault(f => f.ToString() == e.AddedItems[0].ToString());
+
+            GetImagePreview();
         }
     }
 }

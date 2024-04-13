@@ -49,8 +49,10 @@
             </Grid.RowDefinitions>
             <StackPanel>
                 <TextBlock Margin="0,0,0,10" Text="Options" FontSize="18"/>
-                <Grid Margin=" 0 2 0 6" IsEnabled="False">
+                <Grid Margin=" 0 2 0 6" IsEnabled="True">
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
@@ -61,26 +63,26 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Text="File extension" Grid.Column="0"/>
 
-                    <ComboBox Margin="2,4,0,6" HorizontalAlignment="Left" Grid.Row="2" Grid.Column="0">
-                        <ComboBoxItem IsEnabled="False" Content="Bitmap"/>
-                        <ComboBoxItem IsSelected="True" Content="PNG"/>
-                        <ComboBoxItem IsEnabled="False" Content="Tiff"/>
-                    </ComboBox>
+                    <ComboBox Margin="2,4,0,6" HorizontalAlignment="Left" Grid.Row="1" Grid.Column="0" ItemsSource="{Binding FileFormats}" SelectedIndex="0" SelectionChanged="Extension_Changed" />
 
                     <TextBlock Text="Pixel Format" Grid.Column="1"/>
 
-                    <ComboBox Margin="2,4,0,6" HorizontalAlignment="Left" Grid.Row="1" Grid.Column="1">
-                        <ComboBoxItem IsEnabled="False" Content="Gray8"/>
-                        <ComboBoxItem IsSelected="True" Content="Gray16"/>
-                        <ComboBoxItem IsEnabled="False" Content="Gray32"/>
-                    </ComboBox>
+                    <ComboBox x:Name="cbbxPixelFormats" Margin="2,4,0,6" HorizontalAlignment="Left" Grid.Row="1" Grid.Column="1" ItemsSource="{Binding PixelFormats}" SelectionChanged="PixelFormat_Changed" SelectedIndex="0"/>
 
                     <TextBlock Text="Supersampling" Grid.Column="2"/>
 
-                    <ComboBox Margin="2,4,0,6" HorizontalAlignment="Left" Grid.Row="1" Grid.Column="2">
+                    <ComboBox Margin="2,4,0,6" HorizontalAlignment="Left" Grid.Row="1" Grid.Column="2" IsEnabled="False">
                         <ComboBoxItem IsSelected="True" Content="Off"/>
                         <ComboBoxItem IsEnabled="False" Content="2x"/>
                         <ComboBoxItem IsEnabled="False" Content="4x"/>
+                    </ComboBox>
+
+                    <TextBlock Margin="0 4 0 0" Text="Mixin'" Grid.Row="2"/>
+
+                    <ComboBox Margin="2,4,0,6" HorizontalAlignment="Left" Grid.Row="3">
+                        <ComboBoxItem IsSelected="True" Content="Roads Heightmap"/>
+                        <ComboBoxItem IsEnabled="False" Content="Roads Heightmap + Alpha Chanel"/>
+                        <ComboBoxItem IsEnabled="False" Content="Roads Heightmap + Terrain Heightmap"/>
                     </ComboBox>
                 </Grid>
                 <TextBlock Margin="0 2" Text="File Name"/>
