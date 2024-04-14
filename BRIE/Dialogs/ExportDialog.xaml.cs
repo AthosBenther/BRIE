@@ -84,11 +84,17 @@ namespace BRIE.Dialogs
 
             BmpFrame = null;
 
-            bgwpb.RunWorkerCompleted += (obj, arg) =>
+            if (bgwpb != null && bgwpb.IsInitialized)
             {
-                BmpFrame = Image.RenderImage();
-            };
-            bgwpb.RunWorkAsync(worker);
+
+                bgwpb.RunWorkerCompleted += (obj, arg) =>
+                {
+                    BmpFrame = Image.RenderImage();
+                    sqBkDrop.Visibility = Visibility.Collapsed;
+                };
+                bgwpb.RunWorkAsync(worker);
+                sqBkDrop.Visibility = Visibility.Visible;
+            }
         }
 
         public void OnPropertyChanged(string PropertyName)
@@ -142,6 +148,15 @@ namespace BRIE.Dialogs
         private void PixelFormat_Changed(object sender, SelectionChangedEventArgs e)
         {
             Image.PixelFormat = Image.FileFormat.ValidPixelFormats.FirstOrDefault(f => f.ToString() == e.AddedItems[0].ToString());
+
+            GetImagePreview();
+        }
+
+        private void SuperSampling_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            var content = (e.AddedItems[0] as ComboBoxItem).Content;
+            string value = content == null ? "OFF" : content.ToString().ToUpper();
+            Image.SuperSampling = value == "OFF" ? 1 : int.Parse(value.Replace("X", ""));
 
             GetImagePreview();
         }

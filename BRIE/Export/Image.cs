@@ -29,17 +29,21 @@ namespace BRIE.Export
         public static List<string> FormatsExtensions => Formats.Select(f => ((IFileFormat)f).ShortName).ToList();
 
         public static FileFormat FileFormat;
-        public static PixelFormat PixelFormat;
+        public static PixelFormat PixelFormat = PixelFormats.Gray8;
         public static BitmapEncoder Encoder;
+        public static int SuperSampling = 1;
+
 
         private static double pixelMaxValue;
         private static double pixelMinValue;
         private static PixelArray Heightmap;
         private static PixelArray Mask;
+        private static int ImageResolution => Project.Resolution * SuperSampling;
+        private static int ImageResolutionSquared => (int)Math.Pow(ImageResolution, 2);
         public static BackgroundWorker RenderWorker(Roads Roads)
         {
-            Heightmap = new PixelArray(Project.ResolutionSquared);
-            Mask = new PixelArray(Project.ResolutionSquared);
+            Heightmap = new PixelArray(ImageResolutionSquared);
+            Mask = new PixelArray(ImageResolutionSquared);
 
             pixelMaxValue = Math.Pow(2, PixelFormat.BitsPerPixel) - 1;
 
@@ -77,8 +81,11 @@ namespace BRIE.Export
         {
             double startColor = Start.NormalizedElevation * pixelMaxValue;
             double endColor = End.NormalizedElevation * pixelMaxValue;
+            thickness *= SuperSampling;
 
             Vector segmentVector = End.ScaledPosition.FlipY() - Start.ScaledPosition.FlipY(); // Corrected the subtraction order
+            segmentVector.X *= SuperSampling;
+            segmentVector.Y *= SuperSampling;
 
             double segLength = segmentVector.Length;
             int segPixelLength = (int)Math.Round(segmentVector.Length);
@@ -91,8 +98,8 @@ namespace BRIE.Export
 
             for (int i = 0; i <= (int)segLength; i += 1)
             {
-                double x = Start.ScaledPosition.X + (segWidthStep * i);
-                double y = Start.ScaledPosition.FlipY().Y + (segHeightStep * i);
+                double x = Start.ScaledPosition.X * SuperSampling + (segWidthStep * i);
+                double y = Start.ScaledPosition.FlipY().Y * SuperSampling + (segHeightStep * i);
 
                 int stepX = (int)Math.Round(x);
                 int stepY = (int)Math.Round(y);
@@ -144,10 +151,9 @@ namespace BRIE.Export
 
         private static void DrawPixel(int pixelIndex, double color)
         {
-            if (pixelIndex >= 0 && pixelIndex < Project.ResolutionSquared)
+            if (pixelIndex >= 0 && pixelIndex < ImageResolutionSquared)
             {
                 Heightmap.Pixels[pixelIndex] = color;
-                Heightmap.AddPixel(pixelIndex, color);
                 Mask.Pixels[pixelIndex] = pixelMaxValue;
             }
         }
@@ -157,40 +163,54 @@ namespace BRIE.Export
 
         public static int GetPixelIndex(int x, int y)
         {
-            return y * Project.Resolution + x;
+            return y * ImageResolution + x;
         }
 
         public static BitmapFrame RenderImage()
         {
-            var bitmap = new WriteableBitmap(Project.Resolution, Project.Resolution, 96, 96, PixelFormat, null);
+            var bitmap = new WriteableBitmap(ImageResolution, ImageResolution, 96, 96, PixelFormat, null);
 
 
 
-            Int32Rect rect = new Int32Rect(0, 0, Project.Resolution, Project.Resolution);
+            Int32Rect rect = new Int32Rect(0, 0, ImageResolution, ImageResolution);
 
-            int stride = Project.Resolution * (PixelFormat.BitsPerPixel / 8);
+            int stride = ImageResolution * (PixelFormat.BitsPerPixel / 8);
 
             Array pixels = Heightmap.GetPixels(PixelFormat);
+            try
+            {
+                bitmap.WritePixels(rect, pixels, stride, 0);
+            }
+            catch (Exception)
+            {
 
-            bitmap.WritePixels(rect, pixels, stride, 0);
-            return BitmapFrame.Create(bitmap);
+                //throw;
+            }
+
+            double scale = 1 / (double)SuperSampling;
+
+            var targetBitmap = new TransformedBitmap(bitmap, new ScaleTransform(scale, scale));
+            return BitmapFrame.Create(targetBitmap);
         }
 
         public static void Save(string FilePath)
         {
-            var bitmap = new WriteableBitmap(Project.Resolution, Project.Resolution, 96, 96, PixelFormat, null);
+            var bitmap = new WriteableBitmap(ImageResolution, ImageResolution, 96, 96, PixelFormat, null);
 
 
 
-            Int32Rect rect = new Int32Rect(0, 0, Project.Resolution, Project.Resolution);
+            Int32Rect rect = new Int32Rect(0, 0, ImageResolution, ImageResolution);
 
-            int stride = Project.Resolution * (PixelFormat.BitsPerPixel / 8);
+            int stride = ImageResolution * (PixelFormat.BitsPerPixel / 8);
 
             Array pixels = Heightmap.GetPixels(PixelFormat);
 
 
             bitmap.WritePixels(rect, pixels, stride, 0);
-            var bmpf = BitmapFrame.Create(bitmap);
+            double scale = 1 / (double)SuperSampling;
+            
+            var targetBitmap = new TransformedBitmap(bitmap, new ScaleTransform(scale,scale));
+            var bmpf = BitmapFrame.Create(targetBitmap);
             Encoder.Frames.Clear();
             Encoder.Frames.Add(bmpf);
             using (var stream = System.IO.File.Create(FilePath))
