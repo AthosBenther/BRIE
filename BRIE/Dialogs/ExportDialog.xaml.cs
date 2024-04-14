@@ -19,6 +19,7 @@ using BRIE.Export;
 using BRIE.ExportFormats;
 using BRIE.ExportFormats.FileFormats.Meta;
 using Image = BRIE.Export.Image;
+using IOPath = System.IO.Path;
 
 namespace BRIE.Dialogs
 {
@@ -131,6 +132,7 @@ namespace BRIE.Dialogs
         private void Extension_Changed(object sender, SelectionChangedEventArgs e)
         {
             var format = Image.Formats.FirstOrDefault(f => f.ShortName == e.AddedItems[0]);
+            FilePath = IOPath.ChangeExtension(FilePath, format.ValidExtensions[0]);
             Image.FileFormat = format;
             Image.Encoder = format.Encoder;
             PixelFormats = Image.FileFormat.ValidPixelFormats.Select(pf => pf.ToString()).ToList();
@@ -143,5 +145,6 @@ namespace BRIE.Dialogs
 
             GetImagePreview();
         }
+
     }
 }
