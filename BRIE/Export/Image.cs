@@ -32,8 +32,8 @@ namespace BRIE.Export
         public static PixelFormat PixelFormat;
         public static BitmapEncoder Encoder;
 
-        private static int pixelMaxValue;
-        private static int pixelMinValue;
+        private static double pixelMaxValue;
+        private static double pixelMinValue;
         private static PixelArray Heightmap;
         private static PixelArray Mask;
         public static BackgroundWorker RenderWorker(Roads Roads)
@@ -41,10 +41,10 @@ namespace BRIE.Export
             Heightmap = new PixelArray(Project.ResolutionSquared);
             Mask = new PixelArray(Project.ResolutionSquared);
 
-            pixelMaxValue = (int)Math.Pow(2, PixelFormat.BitsPerPixel) - 1;
+            pixelMaxValue = Math.Pow(2, PixelFormat.BitsPerPixel) - 1;
 
-            pixelMinValue = PixelFormat.ToString() == "Gray32Float" ? int.MinValue : 0;
-
+            pixelMinValue = PixelFormat.ToString() == "Gray32Float" ? float.MinValue : 0;
+            //pixelMinValue = 0;
 
             BackgroundWorker bgw = new BackgroundWorker();
 
@@ -75,12 +75,8 @@ namespace BRIE.Export
 
         private static void renderSegment(Road.Node Start, Road.Node End, int thickness = 10)
         {
-
             double startColor = Start.NormalizedElevation * pixelMaxValue;
             double endColor = End.NormalizedElevation * pixelMaxValue;
-
-
-
 
             Vector segmentVector = End.ScaledPosition.FlipY() - Start.ScaledPosition.FlipY(); // Corrected the subtraction order
 
@@ -174,7 +170,9 @@ namespace BRIE.Export
 
             int stride = Project.Resolution * (PixelFormat.BitsPerPixel / 8);
 
-            bitmap.WritePixels(rect, Heightmap.GetPixels(PixelFormat), stride, 0);
+            Array pixels = Heightmap.GetPixels(PixelFormat);
+
+            bitmap.WritePixels(rect, pixels, stride, 0);
             return BitmapFrame.Create(bitmap);
         }
 
@@ -182,8 +180,16 @@ namespace BRIE.Export
         {
             var bitmap = new WriteableBitmap(Project.Resolution, Project.Resolution, 96, 96, PixelFormat, null);
 
+
+
             Int32Rect rect = new Int32Rect(0, 0, Project.Resolution, Project.Resolution);
-            bitmap.WritePixels(rect, Heightmap.GetPixels(PixelFormat), Project.Resolution * 2, 0);
+
+            int stride = Project.Resolution * (PixelFormat.BitsPerPixel / 8);
+
+            Array pixels = Heightmap.GetPixels(PixelFormat);
+
+
+            bitmap.WritePixels(rect, pixels, stride, 0);
             var bmpf = BitmapFrame.Create(bitmap);
             Encoder.Frames.Clear();
             Encoder.Frames.Add(bmpf);

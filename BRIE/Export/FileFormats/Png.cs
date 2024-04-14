@@ -23,7 +23,7 @@ namespace BRIE.ExportFormats.FileFormats
         {
             PixelFormats.Gray8,
             PixelFormats.Gray16,
-            PixelFormats.Gray32Float
+            //PixelFormats.Gray32Float
         };
 
         public override BitmapEncoder Encoder => new PngBitmapEncoder();
