@@ -13,7 +13,7 @@ using BRIE.Etc;
 using BRIE.ExportFormats;
 using BRIE.ExportFormats.FileFormats;
 using BRIE.ExportFormats.FileFormats.Meta;
-using static BRIE.Roads;
+using static BRIE.RoadsCollection;
 
 namespace BRIE.Export
 {
@@ -40,7 +40,7 @@ namespace BRIE.Export
         private static PixelArray Mask;
         private static int ImageResolution => Project.Resolution * SuperSampling;
         private static int ImageResolutionSquared => (int)Math.Pow(ImageResolution, 2);
-        public static BackgroundWorker RenderWorker(Roads Roads)
+        public static BackgroundWorker RenderWorker(RoadsCollection Roads)
         {
             Heightmap = new PixelArray(ImageResolutionSquared);
             Mask = new PixelArray(ImageResolutionSquared);
@@ -57,14 +57,14 @@ namespace BRIE.Export
 
             bgw.DoWork += (obj, arg) =>
             {
-                for (int roadIndex = 0; roadIndex < Roads.All.Count - 1; roadIndex++)
+                for (int roadIndex = 0; roadIndex < Roads.Roads.Count - 1; roadIndex++)
                 {
-                    Roads.Road Road = Roads.All[roadIndex];
+                    Road Road = Roads.Roads[roadIndex];
                     for (int nodeIndex = 0; nodeIndex < Road.Nodes.Count - 1; nodeIndex++)
                     {
                         renderSegment(Road.Nodes[nodeIndex], Road.Nodes[nodeIndex + 1]);
                     }
-                    double perc = (double)roadIndex / Roads.All.Count * 100;
+                    double perc = (double)roadIndex / Roads.Roads.Count * 100;
                     bgw.ReportProgress((int)perc, "Generating Segments..");
                 }
 
@@ -77,7 +77,7 @@ namespace BRIE.Export
             return bgw;
         }
 
-        private static void renderSegment(Road.Node Start, Road.Node End, int thickness = 10)
+        private static void renderSegment(Node Start, Node End, int thickness = 10)
         {
             double startColor = Start.NormalizedElevation * pixelMaxValue;
             double endColor = End.NormalizedElevation * pixelMaxValue;

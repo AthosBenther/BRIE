@@ -1,32 +1,31 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+using System.Drawing;
+using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+using System.Printing;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using BRIE.Etc;
-using BRIE.ExportFormats.FileFormats;
-using BRIE.ExportFormats.FileFormats.Meta;
-using static BRIE.Roads;
 
 namespace BRIE.ExportFormats
 {
     public class PixelArray
     {
-        private double[] pixels;
-        public double[] Pixels => pixels;
+        private double[] _pixels;
+        public double[] Pixels => _pixels;
 
         public PixelArray(int size)
         {
-            pixels = new double[size];
+            _pixels = new double[size];
+        }
+
+        public PixelArray(string filePath)
+        {
+            
         }
 
         public void AddPixel(int index, double color)
         {
-            pixels[index] = color;
+            _pixels[index] = color;
         }
 
         public Array GetPixels(PixelFormat format)
@@ -36,13 +35,13 @@ namespace BRIE.ExportFormats
             switch (format.ToString())
             {
                 case "Gray8":
-                    pix = pixels.Select(p =>(byte)(int)p).ToArray();
+                    pix = _pixels.Select(p => (byte)(int)p).ToArray();
                     break;
                 case "Gray16":
-                    pix = pixels.Select(p => (ushort)p).ToArray();
+                    pix = _pixels.Select(p => (ushort)p).ToArray();
                     break;
                 case "Gray32Float":
-                    pix = pixels.Select(p => (int)p).ToArray();
+                    pix = _pixels.Select(p => (int)p).ToArray();
                     break;
                 default:
                     throw new FormatException("The provided PixelFormat is not supported");

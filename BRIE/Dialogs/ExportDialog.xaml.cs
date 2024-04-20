@@ -1,24 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using BRIE.Export;
-using BRIE.Export;
-using BRIE.ExportFormats;
-using BRIE.ExportFormats.FileFormats.Meta;
-using Image = BRIE.Export.Image;
+using Image = BRIE.Export.ImageRaycasting;
 using IOPath = System.IO.Path;
 
 namespace BRIE.Dialogs
@@ -68,8 +55,8 @@ namespace BRIE.Dialogs
         }
 
 
-        public Roads Roads;
-        public ExportDialog(Roads roads)
+        public RoadsCollection Roads;
+        public ExportDialog(RoadsCollection roads)
         {
             InitializeComponent();
             DataContext = this;
@@ -80,7 +67,7 @@ namespace BRIE.Dialogs
 
         private void GetImagePreview()
         {
-            var worker = Image.RenderWorker(Roads);
+            var worker = Image.RenderWorker(Roads, false);
 
             BmpFrame = null;
 

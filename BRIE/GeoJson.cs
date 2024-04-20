@@ -74,7 +74,7 @@ namespace BRIE
             Features = json.Features;
             Canvas = canvas;
 
-            Roads r = new Roads(this);
+            RoadsCollection r = new RoadsCollection(this);
 
             MinMax();
             SetSizes();
