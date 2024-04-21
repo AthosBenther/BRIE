@@ -5,19 +5,18 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using BRIE.ExportFormats.FileFormats.Meta;
+using BRIE.Classes.Export.FileFormats.Meta;
 
-namespace BRIE.ExportFormats.FileFormats
+namespace BRIE.Classes.Export.FileFormats
 {
-    public class Tiff : FileFormat, IFileFormat
+    public class Png : FileFormat, IFileFormat
     {
-        public override string ShortName => "TIFF";
-        public override string LongName => "Tag Image File Format";
-        public override string FileFilter => "TIFF files (*.tiff)|*.tiff";
+        public override string ShortName => "Png";
+        public override string LongName => "Portable Network Graphics";
+        public override string FileFilter => "PNG files (*.png)|*.png";
         public override List<string> ValidExtensions => new()
         {
-            ".tiff",
-            ".tif"
+            ".png"
         };
 
         public override List<PixelFormat> ValidPixelFormats => new List<PixelFormat>()
@@ -27,6 +26,6 @@ namespace BRIE.ExportFormats.FileFormats
             //PixelFormats.Gray32Float
         };
 
-        public override BitmapEncoder Encoder => new TiffBitmapEncoder();
+        public override BitmapEncoder Encoder => new PngBitmapEncoder();
     }
 }

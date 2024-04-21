@@ -27,6 +27,11 @@
                     <MenuItem Header="Save Project" Click="SaveProjectClick"/>
                 </MenuItem>
                 <MenuItem Header="Projects" Click="MenuProjects_Click"/>
+                <MenuItem Header="Export">
+                    <MenuItem Header="Roads...">
+                        <MenuItem Header="To Heightmap" Click="ExportRoadsToHeightmap_Click"/>
+                    </MenuItem>
+                </MenuItem>
             </Menu>
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                 <Button x:Name="btnWinMin"      Width="32" Background="{x:Null}" BorderBrush="{x:Null}" Content="&#xE921;"  FontFamily="Segoe MDL2 Assets" Click="winBtn_Click"/>
@@ -69,7 +74,7 @@
                                                         <Controls:CanvasLayerControl x:Name="clcRoads" Margin="0 2 0 0" CanOpenFile="False" CanExportFile="False" CanSaveFile="False" Label="Roads" TargetCanvas="{Binding ElementName=linesCanvas}"/>
                                                     </TreeViewItem.Header>
                                                     <StackPanel Name="stkRoads" Margin="1 0 0 0">
-                                                        <Controls:CanvasLayerControl Margin="0 2 0 0"  CanSaveFile="False" Label="Heightmap" TargetCanvas="{Binding ElementName=geoRoadsCanvas}" OpenFileClick="OpenGeoJSON_Click" ExportFileClick="ExportFileClick"/>
+                                                        <Controls:CanvasLayerControl Margin="0 2 0 0"  CanSaveFile="False" CanExportFile="False" Label="Heightmap" TargetCanvas="{Binding ElementName=geoRoadsCanvas}" OpenFileClick="OpenGeoJSON_Click"/>
                                                     </StackPanel>
                                                 </TreeViewItem>
                                                 <Controls:CanvasLayerControl Margin="0 2 0 0" CanSaveFile="False" CanExportFile="False" Label="Terrain HeightMap"                      TargetCanvas="{Binding ElementName=hmCanvas}" OpenFileClick="OpenHeightMap_Click" />
@@ -209,11 +214,11 @@
             <ScrollViewer x:Name="scrl" VerticalScrollBarVisibility="auto" HorizontalScrollBarVisibility="auto">
                 <Grid>
                     <Canvas x:Name="drawingCanvas" MouseUp="drawingCanvas_MouseUp" MouseDown="drawingCanvas_MouseDown" MouseWheel="Canvas_MouseWheel" Background="Transparent" Width="1024" Height="1024" HorizontalAlignment="Center" VerticalAlignment="Center" MouseMove="drawingCanvas_MouseMove">
-                        <Canvas x:Name="bgCanvas"    Width="1024" Height="1024" Background="#FFE2E2E2"/>
-                        <Canvas x:Name="smCanvas"    Width="1024" Height="1024" Background="Transparent"/>
-                        <Canvas x:Name="hmCanvas"    Width="1024" Height="1024" Background="Transparent"/>
-                        <Canvas x:Name="geoRoadsCanvas" Width="1024" Height="1024" Background="Transparent"/>
-                        <Canvas x:Name="gameRoadsCanvas" Width="1024" Height="1024" Background="Transparent"/>
+                        <Canvas x:Name="bgCanvas"           Width="1024" Height="1024" Background="#FFE2E2E2"/>
+                        <Canvas x:Name="smCanvas"           Width="1024" Height="1024" Background="Transparent"/>
+                        <Canvas x:Name="hmCanvas"           Width="1024" Height="1024" Background="Transparent"/>
+                        <Canvas x:Name="geoRoadsCanvas"     Width="1024" Height="1024" Background="Transparent"/>
+                        <Canvas x:Name="gameRoadsCanvas"    Width="1024" Height="1024" Background="Transparent"/>
                         <Canvas x:Name="linesCanvas" Width="1024" Height="1024"/>
                     </Canvas>
                 </Grid>

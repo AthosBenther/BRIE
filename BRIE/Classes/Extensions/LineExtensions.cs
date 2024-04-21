@@ -1,10 +1,10 @@
 ﻿using System.Windows;
 using System.Windows.Shapes;
 
-namespace BRIE.ClassExtensions
+namespace BRIE.Classes.Extensions
 {
     public static class LineExtensions
     {
-        
+
     }
 }

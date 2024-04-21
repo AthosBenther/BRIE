@@ -5,8 +5,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
+using BRIE.Classes.Statics;
 using BRIE.Controls;
 using static System.Net.Mime.MediaTypeNames;
+using Project = BRIE.Classes.Statics.Project;
 
 namespace BRIE.Dialogs
 {
@@ -35,7 +37,7 @@ namespace BRIE.Dialogs
             {
                 foreach (var project in projs)
                 {
-                    Controls.Project ctrlProj = new Controls.Project(project.Key, project.Value[0], project.Value[1]);
+                    Controls.RecentProject ctrlProj = new Controls.RecentProject(project.Key, project.Value[0], project.Value[1]);
                     ctrlProj.Click += (o, e) =>
                     {
                         Visibility = Visibility.Collapsed;

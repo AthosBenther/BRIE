@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Media;
-using BRIE.Etc;
+using BRIE.Classes.Etc;
 
 namespace BRIE.Dialogs
 {

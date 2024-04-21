@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 
-namespace BRIE.Etc
+namespace BRIE.Classes.Etc
 {
     public class Output : INotifyPropertyChanged
     {

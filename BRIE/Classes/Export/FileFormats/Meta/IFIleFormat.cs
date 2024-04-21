@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace BRIE.ExportFormats.FileFormats.Meta
+namespace BRIE.Classes.Export.FileFormats.Meta
 {
     interface IFileFormat
     {

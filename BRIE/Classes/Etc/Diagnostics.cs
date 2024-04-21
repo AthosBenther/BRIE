@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BRIE.Etc
+namespace BRIE.Classes.Etc
 {
     internal class Diagnostics
     {
