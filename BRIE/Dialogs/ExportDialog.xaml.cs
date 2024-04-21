@@ -1,19 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using BRIE.ExportFormats;
+using Image = BRIE.Export.ImageRaycasting;
+using IOPath = System.IO.Path;
 
 namespace BRIE.Dialogs
 {
@@ -47,26 +40,48 @@ namespace BRIE.Dialogs
             }
         }
 
+        //private ObservableCollection<string> _fileFormats = new() { "a", "b" };
+        public List<string> FileFormats => Image.FormatsExtensions;
 
-        public Roads Roads;
-        public ExportDialog(Roads roads)
+        public List<string> _pixelFormats;
+        public List<string> PixelFormats
+        {
+            get => _pixelFormats;
+            set
+            {
+                _pixelFormats = value;
+                OnPropertyChanged(nameof(PixelFormats));
+            }
+        }
+
+
+        public RoadsCollection Roads;
+        public ExportDialog(RoadsCollection roads)
         {
             InitializeComponent();
             DataContext = this;
 
+
             Roads = roads;
-            GetImagePreview();
         }
 
         private void GetImagePreview()
         {
-            var worker = Png16.RenderWorker(Roads);
+            var worker = Image.RenderWorker(Roads, false);
 
-            bgwpb.RunWorkerCompleted += (obj, arg) =>
+            BmpFrame = null;
+
+            if (bgwpb != null && bgwpb.IsInitialized)
             {
-                BmpFrame = Png16.RenderImage();
-            };
-            bgwpb.RunWorkAsync(worker);
+
+                bgwpb.RunWorkerCompleted += (obj, arg) =>
+                {
+                    BmpFrame = Image.RenderImage();
+                    sqBkDrop.Visibility = Visibility.Collapsed;
+                };
+                bgwpb.RunWorkAsync(worker);
+                sqBkDrop.Visibility = Visibility.Visible;
+            }
         }
 
         public void OnPropertyChanged(string PropertyName)
@@ -76,7 +91,7 @@ namespace BRIE.Dialogs
 
         private void Export_Click(object sender, RoutedEventArgs e)
         {
-            Png16.SaveImage();
+            Image.Save(FilePath);
         }
 
         private void Close_Click(object sender, RoutedEventArgs e)
@@ -106,5 +121,32 @@ namespace BRIE.Dialogs
 
             btnExport.IsEnabled = FileManager.IsPathValid(path);
         }
+
+        private void Extension_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            var format = Image.Formats.FirstOrDefault(f => f.ShortName == e.AddedItems[0]);
+            FilePath = IOPath.ChangeExtension(FilePath, format.ValidExtensions[0]);
+            Image.FileFormat = format;
+            Image.Encoder = format.Encoder;
+            PixelFormats = Image.FileFormat.ValidPixelFormats.Select(pf => pf.ToString()).ToList();
+            cbbxPixelFormats.SelectedIndex = 0;
+        }
+
+        private void PixelFormat_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            Image.PixelFormat = Image.FileFormat.ValidPixelFormats.FirstOrDefault(f => f.ToString() == e.AddedItems[0].ToString());
+
+            GetImagePreview();
+        }
+
+        private void SuperSampling_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            var content = (e.AddedItems[0] as ComboBoxItem).Content;
+            string value = content == null ? "OFF" : content.ToString().ToUpper();
+            Image.SuperSampling = value == "OFF" ? 1 : int.Parse(value.Replace("X", ""));
+
+            GetImagePreview();
+        }
+
     }
 }

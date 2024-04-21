@@ -14,8 +14,9 @@ using System.Windows.Shapes;
 using BRIE.Dialogs;
 using BRIE.Etc;
 using BRIE.ExportFormats;
+using BRIE.Types;
 using Microsoft.Win32;
-using static BRIE.Roads;
+using static BRIE.RoadsCollection;
 using IOPath = System.IO.Path;
 using Path = System.Windows.Shapes.Path;
 
@@ -53,6 +54,10 @@ namespace BRIE
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+
+
+
         public MainWindow()
         {
             InitializeComponent();
@@ -140,6 +145,7 @@ namespace BRIE
             List<Shape> roads = geoJson.getRoads16();
             List<Ellipse> ellis = roads.OfType<Ellipse>().ToList();
             List<Rectangle> rects = roads.OfType<Rectangle>().ToList();
+            
             foreach (Shape road in ellis)
             {
                 geoRoadsCanvas.Children.Add(road);
@@ -148,6 +154,8 @@ namespace BRIE
             {
                 geoRoadsCanvas.Children.Add(road);
             }
+
+            
 
             //linesCanvas.Children.Clear();
             //foreach (Polyline pline in geoJson.GetPolys())
@@ -227,10 +235,14 @@ namespace BRIE
         {
             if (!String.IsNullOrEmpty(path))
             {
-                Uri uri = new Uri(path);
-                BitmapImage bitmap = new BitmapImage(uri);
+                BitmapImage bmi = new BitmapImage();
+                bmi.BeginInit();
+                bmi.UriSource = new Uri(path);
+                bmi.CacheOption = BitmapCacheOption.OnLoad;
+                bmi.EndInit();
 
-                hmCanvas.Background = new ImageBrush(bitmap);
+                hmCanvas.Background = new ImageBrush(bmi);
+                
             }
         }
 
@@ -266,7 +278,7 @@ namespace BRIE
         private void Save16BitImage()
         {
 
-            ExportDialog exdiag = new ExportDialog(new Roads(geoJson))
+            ExportDialog exdiag = new ExportDialog(new RoadsCollection(geoJson))
             {
                 Owner = this,
                 WindowStartupLocation = WindowStartupLocation.CenterScreen,

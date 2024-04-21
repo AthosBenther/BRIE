@@ -11,7 +11,7 @@ using BRIE.Types;
 using ImageMagick;
 using Newtonsoft.Json;
 
-namespace BRIE
+namespace BRIE.Types
 {
     public class GeoJson
     {
@@ -74,7 +74,7 @@ namespace BRIE
             Features = json.Features;
             Canvas = canvas;
 
-            Roads r = new Roads(this);
+            RoadsCollection r = new RoadsCollection(this);
 
             MinMax();
             SetSizes();

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using BRIE.Types;
 
 namespace BRIE.Etc
 {
@@ -58,6 +59,28 @@ namespace BRIE.Etc
                 double angleInDegrees = (angleInRadians * 180.0 / Math.PI + 360) % 360;
 
                 return angleInDegrees;
+            }
+
+            public static Line GetPerpendicular(Point center, double normal, double length)
+            {
+                // Calculate the endpoint offsets from the center point based on the normal angle
+                double dx = Math.Sin(normal * Math.PI / 180) * (length / 2);
+                double dy = Math.Cos(normal * Math.PI / 180) * (length / 2);
+
+                // Calculate the start and end points of the perpendicular line
+                Point startPoint = new Point(center.X - dx, center.Y + dy);
+                Point endPoint = new Point(center.X + dx, center.Y - dy);
+
+                // Create the line
+                Line perpendicular = new Line
+                {
+                    X1 = startPoint.X,
+                    Y1 = startPoint.Y,
+                    X2 = endPoint.X,
+                    Y2 = endPoint.Y
+                };
+
+                return perpendicular;
             }
         }
 

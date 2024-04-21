@@ -9,6 +9,7 @@
         WindowStyle="None"
         Title=""
         MinHeight="1000" MaxHeight="1080" MinWidth="1440" Background="#FFFBFBFB"
+        BorderBrush="LightGray"
         MouseDown="DragWindow_MouseDown">
     <Window.Resources>
         <Style TargetType="{x:Type TextBlock}">
@@ -17,97 +18,102 @@
             <Setter Property="FontSize" Value="16"/>
         </Style>
     </Window.Resources>
-    <Grid Margin="30 16 30 0" MouseDown="DragWindow_MouseDown">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="2*"  MinWidth="800"/>
-            <ColumnDefinition Width="1*"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="58"/>
-            <RowDefinition Height="1*" MinHeight="726"/>
-            <RowDefinition Height="74"/>
-            <RowDefinition Height="38"/>
-        </Grid.RowDefinitions>
-        <TextBlock x:Name="txtProjListEmpty" Margin="0,12,0,16" Text="Roads Exporter" FontSize="22" FontWeight="Bold" Grid.ColumnSpan="2"/>
-
-
-        <Grid Grid.RowSpan="2" Grid.Row="1">
+    <Grid>
+        <Grid Margin="30 16 30 0" MouseDown="DragWindow_MouseDown">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"  MinWidth="800"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="1062*"/>
-            </Grid.RowDefinitions>
-            <TextBlock Margin="0,0,0,10"  Text="Preview" FontSize="18"/>
-            <Grid Margin="10" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Image x:Name="imgPreview" Height="800" Width="800" Margin="2" Source="{Binding BmpFrame}"/>
-            </Grid>
-        </Grid>
-        <Grid Margin="10 0 0 0" Grid.Column="1" Grid.Row="1" Grid.RowSpan="3">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="1*"/>
+                <RowDefinition Height="58"/>
+                <RowDefinition Height="1*" MinHeight="726"/>
                 <RowDefinition Height="74"/>
                 <RowDefinition Height="38"/>
             </Grid.RowDefinitions>
-            <StackPanel>
-                <TextBlock Margin="0,0,0,10" Text="Options" FontSize="18"/>
-                <Grid Margin=" 0 2 0 6" IsEnabled="False">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="File extension" Grid.Column="0"/>
+            <TextBlock x:Name="txtProjListEmpty" Margin="0,12,0,16" Text="Roads Exporter" FontSize="22" FontWeight="Bold" Grid.ColumnSpan="2"/>
 
-                    <ComboBox Margin="2,4,0,6" HorizontalAlignment="Left" Grid.Row="2" Grid.Column="0">
-                        <ComboBoxItem IsEnabled="False" Content="Bitmap"/>
-                        <ComboBoxItem IsSelected="True" Content="PNG"/>
-                        <ComboBoxItem IsEnabled="False" Content="Tiff"/>
-                    </ComboBox>
 
-                    <TextBlock Text="Pixel Format" Grid.Column="1"/>
-
-                    <ComboBox Margin="2,4,0,6" HorizontalAlignment="Left" Grid.Row="1" Grid.Column="1">
-                        <ComboBoxItem IsEnabled="False" Content="Gray8"/>
-                        <ComboBoxItem IsSelected="True" Content="Gray16"/>
-                        <ComboBoxItem IsEnabled="False" Content="Gray32"/>
-                    </ComboBox>
-
-                    <TextBlock Text="Supersampling" Grid.Column="2"/>
-
-                    <ComboBox Margin="2,4,0,6" HorizontalAlignment="Left" Grid.Row="1" Grid.Column="2">
-                        <ComboBoxItem IsSelected="True" Content="Off"/>
-                        <ComboBoxItem IsEnabled="False" Content="2x"/>
-                        <ComboBoxItem IsEnabled="False" Content="4x"/>
-                    </ComboBox>
+            <Grid Grid.RowSpan="2" Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="1062*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Margin="0,0,0,10"  Text="Preview" FontSize="18"/>
+                <Grid Margin="10" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Image x:Name="imgPreview" Height="800" Width="800" Margin="2" Source="{Binding BmpFrame}"/>
                 </Grid>
-                <TextBlock Margin="0 2" Text="File Name"/>
-                <Grid Margin="0 4 0 8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="439*"/>
-                        <ColumnDefinition Width="auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox Grid.ColumnSpan="1" Margin="2" Text="{Binding FilePath}" TextChanged="FileName_TextChanged" />
-                    <Button Padding="2" Margin="2" Content="&#xEC50;" FontFamily="Segoe MDL2 Assets" FontSize="14" Grid.Column="2" Click="OpenFile_Click"/>
-                </Grid>
+            </Grid>
+            <Grid Margin="10 0 0 0" Grid.Column="1" Grid.Row="1" Grid.RowSpan="3">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="74"/>
+                    <RowDefinition Height="38"/>
+                </Grid.RowDefinitions>
+                <StackPanel>
+                    <TextBlock Margin="0,0,0,10" Text="Options" FontSize="18"/>
+                    <Grid Margin=" 0 2 0 6" IsEnabled="True">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="File extension" Grid.Column="0"/>
+
+                        <ComboBox Margin="2,4,0,6" HorizontalAlignment="Left" Grid.Row="1" Grid.Column="0" ItemsSource="{Binding FileFormats}" SelectedIndex="0" SelectionChanged="Extension_Changed" />
+
+                        <TextBlock Text="Pixel Format" Grid.Column="1"/>
+
+                        <ComboBox x:Name="cbbxPixelFormats" Margin="2,4,0,6" HorizontalAlignment="Left" Grid.Row="1" Grid.Column="1" ItemsSource="{Binding PixelFormats}" SelectionChanged="PixelFormat_Changed" SelectedIndex="0"/>
+
+                        <TextBlock Text="Supersampling" Grid.Column="2"/>
+
+                        <ComboBox Margin="2,4,0,6" HorizontalAlignment="Left" Grid.Row="1" Grid.Column="2" SelectionChanged="SuperSampling_Changed">
+                            <ComboBoxItem IsSelected="True" Content="Off"/>
+                            <ComboBoxItem Content="2x"/>
+                            <ComboBoxItem Content="4x"/>
+                            <ComboBoxItem Content="8x"/>
+                            <ComboBoxItem Content="16x"/>
+                        </ComboBox>
+
+                        <TextBlock Margin="0 4 0 0" Text="Mixin'" Grid.Row="2"/>
+
+                        <ComboBox Margin="2,4,0,6" HorizontalAlignment="Left" Grid.Row="3">
+                            <ComboBoxItem IsSelected="True" Content="Roads Heightmap"/>
+                            <ComboBoxItem IsEnabled="False" Content="Roads Heightmap + Alpha Chanel"/>
+                            <ComboBoxItem IsEnabled="False" Content="Roads Heightmap + Terrain Heightmap"/>
+                        </ComboBox>
+                    </Grid>
+                    <TextBlock Margin="0 2" Text="File Name"/>
+                    <Grid Margin="0 4 0 8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="439*"/>
+                            <ColumnDefinition Width="auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.ColumnSpan="1" Margin="2" Text="{Binding FilePath}" TextChanged="FileName_TextChanged" />
+                        <Button Padding="2" Margin="2" Content="&#xEC50;" FontFamily="Segoe MDL2 Assets" FontSize="14" Grid.Column="2" Click="OpenFile_Click"/>
+                    </Grid>
 
 
-            </StackPanel>
-            <Button x:Name="btnExport" IsEnabled="False" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" BorderThickness="0" Click="Export_Click" Grid.Row="1">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition Width="auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Margin="12 12 18 12"  Grid.Column="1" FontFamily="Segoe MDL2 Assets" Text="&#xE826;" FontSize="48" VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                    <TextBlock Text="Export" FontSize="22" VerticalAlignment="Center" FontWeight="Bold" HorizontalAlignment="Right"/>
-                </Grid>
-            </Button>
+                </StackPanel>
+                <Button x:Name="btnExport" IsEnabled="False" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" BorderThickness="0" Click="Export_Click" Grid.Row="1">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Margin="12 12 18 12"  Grid.Column="1" FontFamily="Segoe MDL2 Assets" Text="&#xE826;" FontSize="48" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                        <TextBlock Text="Export" FontSize="22" VerticalAlignment="Center" FontWeight="Bold" HorizontalAlignment="Right"/>
+                    </Grid>
+                </Button>
 
 
-            <Button
+                <Button
                 Margin="0 10 18 10"
                 Content="Close"
                 HorizontalAlignment="Right"
@@ -116,9 +122,11 @@
                 Padding="6,0"
                 Click="Close_Click" Grid.Row="2" Width="43"
          />
+            </Grid>
+            <local:BGWProgressBar x:Name="bgwpb" Margin="6,6,6,6" Height="10" Width="800" Grid.Row="3" Visibility="Visible"/>
+
         </Grid>
-        <local:BGWProgressBar x:Name="bgwpb" Margin="6,6,6,6" Height="10" Width="800" Grid.Row="3" Visibility="Visible"/>
-        <Rectangle x:Name="sqBkDrop" Grid.RowSpan="4" Visibility="Collapsed" Grid.ColumnSpan="2">
+        <Rectangle x:Name="sqBkDrop" Visibility="Collapsed">
             <Rectangle.Fill>
                 <SolidColorBrush Color="#FFEFEFEF" Opacity="0.7"/>
             </Rectangle.Fill>
