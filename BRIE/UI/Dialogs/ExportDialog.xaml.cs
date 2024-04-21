@@ -7,7 +7,7 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using BRIE.Classes;
 using BRIE.Classes.Statics;
-using Image = BRIE.Export.ImageRaycasting;
+using Image = BRIE.Classes.Export.ImageRaycasting;
 using IOPath = System.IO.Path;
 
 namespace BRIE.Dialogs

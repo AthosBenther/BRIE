@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using BRIE.Classes.Etc;
 using BRIE.Classes.Roads.Collection;
-using BRIE.Etc;
 using BRIE.Types.Geographics;
 using Color = System.Windows.Media.Color;
 using Point = System.Windows.Point;

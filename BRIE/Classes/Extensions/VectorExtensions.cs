@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace BRIE.ClassExtensions
+namespace BRIE.Classes.Extensions
 {
     public static class VectorExtensions
     {

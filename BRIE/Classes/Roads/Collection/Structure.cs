@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Windows;
+using BRIE.Classes.Etc;
+using BRIE.Classes.Extensions;
 using BRIE.Classes.Statics;
-using BRIE.ClassExtensions;
-using BRIE.Etc;
 using BRIE.Types.Geographics;
 using Line = BRIE.Types.Geometry.Line;
 using Point = System.Windows.Point;

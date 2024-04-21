@@ -5,7 +5,7 @@ using System.Windows.Media;
 using BRIE.Classes.Statics;
 using Path = System.Windows.Shapes.Path;
 
-namespace BRIE.Etc
+namespace BRIE.Classes.Etc
 {
     public static class Helpers
     {

@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using BRIE.ExportFormats.FileFormats.Meta;
+using BRIE.Classes.Export.FileFormats.Meta;
 
-namespace BRIE.ExportFormats.FileFormats
+namespace BRIE.Classes.Export.FileFormats
 {
     public class Bmp : FileFormat, IFileFormat
     {

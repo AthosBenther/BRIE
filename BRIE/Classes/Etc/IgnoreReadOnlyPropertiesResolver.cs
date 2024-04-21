@@ -5,7 +5,7 @@ using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace BRIE.Etc
+namespace BRIE.Classes.Etc
 {
     class IgnoreReadOnlyPropertiesResolver : DefaultContractResolver
     {

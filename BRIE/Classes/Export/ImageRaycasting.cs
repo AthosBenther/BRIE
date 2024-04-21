@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using BRIE.Etc;
-using BRIE.ExportFormats;
-using BRIE.ExportFormats.FileFormats;
-using BRIE.ExportFormats.FileFormats.Meta;
-using BRIE.Types;
+using BRIE.Classes.Etc;
+using BRIE.Classes.Export.FileFormats;
+using BRIE.Classes.Export.FileFormats.Meta;
+using BRIE.Classes.Roads.Collection;
+using BRIE.Classes.Statics;
+using BRIE.Types.Geometry;
 
-namespace BRIE.Export
+namespace BRIE.Classes.Export
 {
     public static class ImageRaycasting
     {
@@ -39,7 +39,7 @@ namespace BRIE.Export
         private static PixelArray Mask;
         private static int ImageResolution => Project.Resolution * SuperSampling;
         private static int ImageResolutionSquared => (int)Math.Pow(ImageResolution, 2);
-        public static BackgroundWorker RenderWorker(RoadsCollection RoadsCollection, bool useTerrain = false)
+        public static BackgroundWorker RenderWorker(bool useTerrain = false)
         {
             Heightmap = useTerrain ? new PixelArray(Project.HeightmapPath) : new PixelArray(ImageResolutionSquared);
             Mask = new PixelArray(ImageResolutionSquared);
@@ -124,7 +124,7 @@ namespace BRIE.Export
                     if (IsInside(currentPosition, segment.Polygon))
                     {
                         // Calculate the distance of the current pixel from the start point of the segment
-                        double distance = (currentPosition - segment.Start.ScaledPosition.FlipY()).Length;
+                        double distance = (currentPosition - segment.Start.Position.FlipY()).Length;
 
                         // Interpolate the color based on the distance from the start point
                         double pixelColor = startColor + deltaColor * (distance / segment.Lenght);
@@ -164,7 +164,7 @@ namespace BRIE.Export
                 Point p2 = Polygon.Points[(i + 1) % pointsCount];
 
                 // Check if the point is within the y-range of the edge
-                if ((p1.Y <= point.Y && point.Y < p2.Y) || (p2.Y <= point.Y && point.Y < p1.Y))
+                if (p1.Y <= point.Y && point.Y < p2.Y || p2.Y <= point.Y && point.Y < p1.Y)
                 {
                     // Calculate the x-coordinate where the edge intersects with the horizontal line at point.Y
                     double xIntersection = (point.Y - p1.Y) * (p2.X - p1.X) / (p2.Y - p1.Y) + p1.X;

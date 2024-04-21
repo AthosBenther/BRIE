@@ -1,26 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using BRIE.Classes;
-using BRIE.Classes.RoadsSources;
+using BRIE.Classes.Etc;
+using BRIE.Classes.Roads.Sources;
 using BRIE.Classes.Statics;
 using BRIE.Dialogs;
-using BRIE.Etc;
-using BRIE.ExportFormats;
 using Microsoft.Win32;
-using static BRIE.Classes.RoadsCollection;
-using IOPath = System.IO.Path;
-using Path = System.Windows.Shapes.Path;
 
 
 [assembly: System.Reflection.Metadata.MetadataUpdateHandler(typeof(BRIE.MainWindow))]

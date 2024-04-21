@@ -6,7 +6,7 @@ using System.Printing;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace BRIE.ExportFormats
+namespace BRIE.Classes.Export
 {
     public class PixelArray
     {
@@ -20,7 +20,7 @@ namespace BRIE.ExportFormats
 
         public PixelArray(string filePath)
         {
-            
+
         }
 
         public void AddPixel(int index, double color)
