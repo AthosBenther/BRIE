@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using BRIE.Etc;
 
-namespace BRIE.Types
+namespace BRIE.Types.Geographics
 {
     public class Extents : INotifyPropertyChanged
     {

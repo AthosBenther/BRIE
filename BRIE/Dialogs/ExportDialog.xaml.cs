@@ -5,6 +5,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using BRIE.Classes;
+using BRIE.Classes.Statics;
 using Image = BRIE.Export.ImageRaycasting;
 using IOPath = System.IO.Path;
 
@@ -54,20 +56,15 @@ namespace BRIE.Dialogs
             }
         }
 
-
-        public RoadsCollection Roads;
-        public ExportDialog(RoadsCollection roads)
+        public ExportDialog()
         {
             InitializeComponent();
             DataContext = this;
-
-
-            Roads = roads;
         }
 
         private void GetImagePreview()
         {
-            var worker = Image.RenderWorker(Roads, false);
+            var worker = Image.RenderWorker(false);
 
             BmpFrame = null;
 

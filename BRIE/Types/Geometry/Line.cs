@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Shapes;
 
-namespace BRIE.Types
+namespace BRIE.Types.Geometry
 {
     public class Line
     {

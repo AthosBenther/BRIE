@@ -18,11 +18,11 @@ namespace BRIE.Controls
     /// <summary>
     /// Interaction logic for Project.xaml
     /// </summary>
-    public partial class Project : UserControl
+    public partial class RecentProject : UserControl
     {
         public event EventHandler Click;
         public string Path { get => lblPath.Text; }
-        public Project(DateTime date, string PName, string Path)
+        public RecentProject(DateTime date, string PName, string Path)
         {
             InitializeComponent();
             lblName.Text = PName;

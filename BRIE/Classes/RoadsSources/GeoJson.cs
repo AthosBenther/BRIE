@@ -1,19 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Xml.Linq;
+using BRIE.Classes.Statics;
 using BRIE.Etc;
 using BRIE.ExportFormats;
-using BRIE.Types;
 using ImageMagick;
 using Newtonsoft.Json;
 
-namespace BRIE.Types
+namespace BRIE.Classes.RoadsSources
 {
-    public class GeoJson
+    public class GeoJson : RoadsSource
     {
         public string Type { get; set; }
         public string Name { get; set; }
@@ -74,13 +76,29 @@ namespace BRIE.Types
             Features = json.Features;
             Canvas = canvas;
 
-            RoadsCollection r = new RoadsCollection(this);
-
             MinMax();
             SetSizes();
 
         }
 
+        public override void ToRoadsCollection()
+        {
+            RoadsCollection.All.Clear();
+            Features.ForEach(feature =>
+            {
+                bool ignore = ignoreIds.Contains(feature.Properties.ID) || string.IsNullOrEmpty(feature.Properties.Highway);
+
+                if (!ignore)
+                {
+
+                    Road r = new Road();
+                    ObservableCollection<Node> ns = new ObservableCollection<Node>();
+                    feature.Geometry.Coordinates.ForEach(C => C.ForEach(c => ns.Add(new Node(new Point(c[0], c[1]), c[2], Project.DefaultRoadWidth, r))));
+                    r.Nodes = ns;
+                    RoadsCollection.All.Add(r);
+                }
+            });
+        }
         private void SetSizes()
         {
             MapSize = (int)Canvas.Height;
@@ -133,7 +151,7 @@ namespace BRIE.Types
                             double scaledX = metersLong * scaleX;
                             double scaledY = metersLat * scaleY;
 
-                            scaledY = (scaledY * -1) + MapSize;
+                            scaledY = scaledY * -1 + MapSize;
 
                             return new List<double> { scaledX, scaledY, c[2] };
                         }).ToList();
@@ -151,11 +169,11 @@ namespace BRIE.Types
                             Point p1 = new Point(Points[i][0], Points[i][1]);
                             double p1h = Points[i][2];
                             double normalP1h = p1h - minAscH;
-                            double scaledP1h = normalP1h / (diffAscH);
+                            double scaledP1h = normalP1h / diffAscH;
                             Point p2 = new Point(Points[i + 1][0], Points[i + 1][1]);
                             double p2h = Points[i + 1][2];
                             double normalP2h = p2h - minAscH;
-                            double scaledP2h = normalP2h / (diffAscH);
+                            double scaledP2h = normalP2h / diffAscH;
 
 
                             // Calculate the length of the segment
@@ -191,7 +209,7 @@ namespace BRIE.Types
                             //ellipse.RenderTransform = rotation;
 
                             Point origin = Math2.Trigonometry.RightTriangle.GetCatheti(roadWidth, angle);
-                            Point rectOrigin = new Point(p1.X - (origin.X / 2), p1.Y - (origin.Y / 2));
+                            Point rectOrigin = new Point(p1.X - origin.X / 2, p1.Y - origin.Y / 2);
                             Point elliOrigin = new Point(
                                 p1.X - roadWidth / 2,
                                 p1.Y - roadWidth / 2
@@ -265,309 +283,6 @@ namespace BRIE.Types
 
             return shapes;
         }
-        public List<Shape> getRoads16()
-        {
-            List<Shape> shapes = new List<Shape>();
-
-            SetSizes();
-
-            foreach (Feature feature in Features)
-            {
-                PointCollection points = new PointCollection();
-
-                bool ignore = ignoreIds.Contains(feature.Properties.ID) || feature.Properties.Highway == null;
-
-                if (!ignore)
-                {
-                    foreach (var Coordinates in feature.Geometry.Coordinates)
-                    {
-
-
-                        List<List<double>> Points = Coordinates.Select(c =>
-                        {
-
-                            double longitude = c[0];
-                            double latitude = c[1];
-                            double? heigh = c.Count == 3 ? c[2] : null;
-
-
-                            double normalLat = latitude - minLat;
-                            double normalLong = longitude - minLong;
-
-                            double metersLong = Helpers.LongitudeToMeters(normalLong);
-                            double metersLat = Helpers.LatitudeToMeters(normalLat);
-
-
-
-                            double scaledX = metersLong * scaleX;
-                            double scaledY = metersLat * scaleY;
-
-                            scaledY = (scaledY * -1) + MapSize;
-
-                            return new List<double> { scaledX, scaledY, c[2] };
-                        }).ToList();
-
-
-
-                        for (int i = 0; i < Points.Count - 1; i++)
-                        {
-                            //Point p1 = new Point(Points[i][0], Points[i][1]);
-                            //double p1h = Points[i][2];
-                            //double scaledP1h = (p1h - minQgisH) / diffQgisH;
-                            //Point p2 = new Point(Points[i + 1][0], Points[i + 1][1]);
-                            //double scaledP2h = (Points[i + 1][2] - minQgisH) / diffQgisH;
-
-                            Point p1 = new Point(Points[i][0], Points[i][1]);
-                            double p1h = Points[i][2];
-                            double normalP1h = p1h - minAscH;
-                            double scaledP1h = normalP1h / (diffAscH);
-                            Point p2 = new Point(Points[i + 1][0], Points[i + 1][1]);
-                            double p2h = Points[i + 1][2];
-                            double normalP2h = p2h - minAscH;
-                            double scaledP2h = normalP2h / (diffAscH);
-
-
-                            // Calculate the length of the segment
-                            double length = Math2.DistanceBetweenPoints(p1, p2);
-
-                            // Calculate the angle of the segment
-                            double angle = Math2.CalculatePolylineAngle(p1, p2);
-
-                            // Calculate the center point of the segment
-                            Point center = Math2.getPointsCenter(p1, p2);
-
-                            // Create a rotation transform
-                            angle -= 90;
-                            RotateTransform rotation = new RotateTransform(angle);
-
-                            // Create the rectangle
-                            //DrawableRectangle drawableRectangle = new DrawableRectangle(center, rotation);
-                            Rectangle rectangle = new Rectangle
-                            {
-                                Width = roadWidth,
-                                Height = length
-                            };
-
-                            Ellipse ellipse = new Ellipse
-                            {
-                                Width = roadWidth,
-                                Height = roadWidth
-                            };
-
-                            // Set the position of the rectangle
-
-                            // Apply rotation to the rectangle
-                            rectangle.RenderTransform = rotation;
-                            //ellipse.RenderTransform = rotation;
-
-                            Point origin = Math2.Trigonometry.RightTriangle.GetCatheti(roadWidth, angle);
-                            Point rectOrigin = new Point(p1.X - (origin.X / 2), p1.Y - (origin.Y / 2));
-                            Point elliOrigin = new Point(
-                                p1.X - roadWidth / 2,
-                                p1.Y - roadWidth / 2
-                                );
-
-                            Canvas.SetLeft(rectangle, rectOrigin.X);
-                            Canvas.SetTop(rectangle, rectOrigin.Y);
-
-                            Canvas.SetLeft(ellipse, elliOrigin.X);
-                            Canvas.SetTop(ellipse, elliOrigin.Y);
-
-
-                            //Canvas.SetLeft(rectangle, p1.X);
-                            //Canvas.SetTop(rectangle,  p1.Y);
-
-                            LinearGradientBrush gradientBrush = new LinearGradientBrush();
-
-
-                            byte gray8A = (byte)(scaledP1h * byte.MaxValue);
-                            Color color16A = new Color()
-                            {
-                                R = gray8A,
-                                G = gray8A,
-                                B = gray8A,
-                                A = byte.MaxValue
-                            };
-
-                            byte gray8B = (byte)(scaledP2h * byte.MaxValue);
-                            Color color16B = new Color()
-                            {
-                                R = gray8B,
-                                G = gray8B,
-                                B = gray8B,
-                                A = byte.MaxValue
-                            };
-
-
-                            // Define gradient stops
-                            gradientBrush.GradientStops.Add(new GradientStop(color16A, 0.0));
-                            gradientBrush.GradientStops.Add(new GradientStop(color16B, 1.0));
-
-                            // Set the rectangle's fill to the gradient brush
-                            rectangle.Fill = gradientBrush;
-                            ellipse.Fill = new SolidColorBrush(color16A);
-
-                            ToolTip rttp = new ToolTip();
-                            rttp.Content = "OSM ID: " + feature.Properties.Osm_id + "\n";
-                            rttp.Content += "Position: X" + Canvas.GetLeft(rectangle) + ", Y" + Canvas.GetTop(rectangle) + "\n";
-                            rttp.Content += "Gray: " + scaledP1h + "\n";
-                            rttp.Content += feature.Properties.Name;
-                            rectangle.ToolTip = rttp;
-
-                            ToolTip ettp = new ToolTip();
-                            ettp.Content = "OSM ID: " + feature.Properties.Osm_id + "\n";
-                            ettp.Content += "Position: X" + Canvas.GetLeft(rectangle) + ", Y" + Canvas.GetTop(rectangle) + "\n";
-                            ettp.Content += "Gray: " + scaledP1h + "\n";
-                            ettp.Content += feature.Properties.Name;
-                            ellipse.ToolTip = ettp;
-
-
-                            rectangle.MouseEnter += (sender, e) => { (sender as Rectangle).Fill = Brushes.Red; };
-                            rectangle.MouseLeave += (sender, e) => { (sender as Rectangle).Fill = gradientBrush; };
-                            rectangle.MouseDown += (sender, e) => { Clipboard.SetText(((sender as Rectangle).ToolTip as ToolTip).Content as string); };
-
-                            ellipse.MouseEnter += (sender, e) => { (sender as Ellipse).Fill = Brushes.Red; };
-                            ellipse.MouseLeave += (sender, e) => { (sender as Ellipse).Fill = gradientBrush; };
-                            ellipse.MouseDown += (sender, e) => { Clipboard.SetText(((sender as Ellipse).ToolTip as ToolTip).Content as string); };
-
-                            shapes.Add(rectangle);
-                            //shapes.Add(ellipse);
-                        }
-                    }
-                }
-            }
-
-            return shapes;
-        }
-
-        public List<Polyline> GetPolys()
-        {
-            List<Polyline> Polys = new List<Polyline>();
-
-            SetSizes();
-
-            foreach (Feature feature in Features)
-            {
-                Polyline poly = new Polyline();
-                poly.Stroke = Brushes.Black;
-                poly.StrokeThickness = 1;
-                PointCollection Points = new PointCollection();
-
-                bool ignore = ignoreIds.Contains(feature.Properties.ID) || feature.Properties.Highway == null;
-
-                if (!ignore)
-                {
-                    feature.Geometry.GetPointsCollections(this).ForEach(lp => lp.ToList().ForEach(p => Points.Add(p)));
-                }
-
-                poly.Points = Points;
-                Polys.Add(poly);
-            }
-
-            return Polys;
-        }
-
-        public List<Path> GetPaths()
-        {
-            List<Path> Paths = new List<Path>();
-            Path path = new Path();
-
-            SetSizes();
-
-            List<int> q = new List<int>();
-            foreach (Feature feature in Features)
-            {
-                string osm = feature.Properties.Osm_id;
-                bool ignore = ignoreIds.Contains(feature.Properties.ID) || feature.Properties.Highway == null;
-
-
-                if (!ignore)
-                {
-
-                    path = new Path();
-                    List<PointCollection> geoPoints = feature.Geometry.GetPointsCollections(this);
-
-                    PathGeometry pG = new PathGeometry();
-
-                    foreach (PointCollection pC in geoPoints)
-                    {
-                        q.Add(pC.Count);
-                        PathFigure pf = new PathFigure();
-                        pf.StartPoint = pC[0]; // Set the start point of the PathFigure
-
-                        if (pC.Count >= 3)
-                        {
-                            for (int i = 1; i < pC.Count - 1; i++)
-                            {
-                                QuadraticBezierSegment qbs = new QuadraticBezierSegment(pC[i], pC[i + 1], true);
-                                pf.Segments.Add(qbs);
-
-                            }
-                        }
-                        else if (pC.Count == 2)
-                        {
-                            LineSegment ls = new LineSegment();
-                            ls.Point = pC[1];
-
-                            PathSegmentCollection psc = new PathSegmentCollection
-                            {
-                                ls
-                            };
-
-                            pf.Segments = psc;
-                        }
-                        else
-                        {
-                            string alala = "sei lá mano";
-                        }
-
-
-
-                        // Add the PathFigure to the PathGeometry
-                        pG.Figures.Add(pf);
-                    }
-
-
-
-                    path.Data = pG;
-                    path.Stroke = Brushes.Black;
-                    path.StrokeThickness = 2;
-
-
-                    ToolTip ttp = new ToolTip();
-                    ttp.Content = feature.Properties.Osm_id + "\n" + feature.Properties.Name;
-                    path.ToolTip = ttp;
-
-                    path.IsMouseDirectlyOverChanged += (sender, e) =>
-                    {
-                        if ((bool)e.NewValue == true)
-                        {
-                            (sender as Path).Stroke = Brushes.Red;
-                            (sender as Path).StrokeThickness = 3;
-                        }
-                        else
-                        {
-
-                            (sender as Path).Stroke = Brushes.Black;
-                            (sender as Path).StrokeThickness = 2;
-                        }
-                    };
-                    path.MouseDown += (sender, e) =>
-                    {
-                        string a = string.Join("\n", geoPoints.Select(g => g.ToString()));
-                        Clipboard.SetText(a);
-                    };
-
-
-
-                    Paths.Add(path);
-                }
-
-
-            }
-            return Paths;
-        }
-
         private void MinMax()
         {
             foreach (Feature feature in Features)
@@ -585,12 +300,12 @@ namespace BRIE.Types
                             double height = coord[2];
 
                             // Update min and max values
-                            minLat = (latCoord < minLat) ? latCoord : minLat;
-                            maxLat = (latCoord > maxLat) ? latCoord : maxLat;
-                            minLong = (longCoord < minLong) ? longCoord : minLong;
-                            maxLong = (longCoord > maxLong) ? longCoord : maxLong;
-                            minH = (height < minH) ? height : minH;
-                            maxH = (height > maxH) ? height : maxH;
+                            minLat = latCoord < minLat ? latCoord : minLat;
+                            maxLat = latCoord > maxLat ? latCoord : maxLat;
+                            minLong = longCoord < minLong ? longCoord : minLong;
+                            maxLong = longCoord > maxLong ? longCoord : maxLong;
+                            minH = height < minH ? height : minH;
+                            maxH = height > maxH ? height : maxH;
                         }
                     }
                 }
@@ -673,7 +388,7 @@ namespace BRIE.Types
                     double scaledX = metersLong * geoJson.scaleX;
                     double scaledY = metersLat * geoJson.scaleY;
 
-                    scaledY = (scaledY * -1) + geoJson.MapSize;
+                    scaledY = scaledY * -1 + geoJson.MapSize;
 
                     pointColl.Add(new Point(scaledX, scaledY));
                 }

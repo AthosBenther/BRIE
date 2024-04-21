@@ -6,9 +6,9 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media.Media3D;
-using ShapesPolygon = System.Windows.Shapes.Polygon;
+using SPoly = System.Windows.Shapes.Polygon;
 
-namespace BRIE.Types
+namespace BRIE.Types.Geometry
 {
     public class Polygon
     {
@@ -59,9 +59,9 @@ namespace BRIE.Types
             _height = maxY - minY;
         }
 
-        private ShapesPolygon ToShapesPolygon()
+        public SPoly ToSPoly()
         {
-            ShapesPolygon spoly = new ShapesPolygon();
+            SPoly spoly = new SPoly();
             Points.ToList().ForEach(p => spoly.Points.Add(p));
             return spoly;
         }

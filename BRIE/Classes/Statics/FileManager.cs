@@ -9,7 +9,7 @@ using BRIE.Etc;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 
-namespace BRIE
+namespace BRIE.Classes.Statics
 {
     internal class FileManager
     {
@@ -77,7 +77,7 @@ namespace BRIE
             openFileDialog.Filter = "BRIE Project File (*.brie)|*.brie";
             openFileDialog.ShowDialog();
 
-            return (!string.IsNullOrWhiteSpace(openFileDialog.FileName)) ? OpenBrie(openFileDialog.FileName) : null;
+            return !string.IsNullOrWhiteSpace(openFileDialog.FileName) ? OpenBrie(openFileDialog.FileName) : null;
         }
         internal static ProjectData OpenBrie(string FileName)
         {
