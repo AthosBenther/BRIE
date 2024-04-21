@@ -57,14 +57,14 @@ namespace BRIE.Export
 
             bgw.DoWork += (obj, arg) =>
             {
-                for (int roadIndex = 0; roadIndex < Roads.Roads.Count - 1; roadIndex++)
+                for (int roadIndex = 0; roadIndex < Roads.All.Count - 1; roadIndex++)
                 {
-                    Road Road = Roads.Roads[roadIndex];
+                    Road Road = Roads.All[roadIndex];
                     for (int nodeIndex = 0; nodeIndex < Road.Nodes.Count - 1; nodeIndex++)
                     {
                         renderSegment(Road.Nodes[nodeIndex], Road.Nodes[nodeIndex + 1]);
                     }
-                    double perc = (double)roadIndex / Roads.Roads.Count * 100;
+                    double perc = (double)roadIndex / Roads.All.Count * 100;
                     bgw.ReportProgress((int)perc, "Generating Segments..");
                 }
 

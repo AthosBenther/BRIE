@@ -20,7 +20,7 @@ namespace BRIE
                 if (extents != null) return extents;
                 else
                 {
-                    List<Point> coords = Roads.SelectMany(Road => Road.Nodes, (Road, Node) =>
+                    List<Point> coords = All.SelectMany(Road => Road.Nodes, (Road, Node) =>
                     {
                         return Node.Coordinate;
                     }).ToList();
@@ -41,7 +41,7 @@ namespace BRIE
         }
 
 
-        public List<Road> Roads = new List<Road>();
+        public List<Road> All = new List<Road>();
 
         public bool ScaleToExtents = true;
 
@@ -75,7 +75,7 @@ namespace BRIE
 
                 if (!ignore)
                 {
-                    Roads.Add(new Road(this, feature));
+                    All.Add(new Road(this, feature));
                 }
             });
 

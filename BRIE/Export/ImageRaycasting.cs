@@ -59,11 +59,11 @@ namespace BRIE.Export
                 List<BackgroundWorker> workerList = new List<BackgroundWorker>();
 
 
-                for (int roadIndex = 0; roadIndex < RoadsCollection.Roads.Count - 1; roadIndex++)
+                for (int roadIndex = 0; roadIndex < RoadsCollection.All.Count - 1; roadIndex++)
                 {
                     BackgroundWorker roadbgw = new BackgroundWorker();
 
-                    Road road = RoadsCollection.Roads[roadIndex];
+                    Road road = RoadsCollection.All[roadIndex];
 
                     roadbgw.DoWork += (obj, arg) =>
                     {

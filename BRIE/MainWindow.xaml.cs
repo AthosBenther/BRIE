@@ -14,6 +14,7 @@ using System.Windows.Shapes;
 using BRIE.Dialogs;
 using BRIE.Etc;
 using BRIE.ExportFormats;
+using BRIE.Types;
 using Microsoft.Win32;
 using static BRIE.RoadsCollection;
 using IOPath = System.IO.Path;
@@ -53,6 +54,10 @@ namespace BRIE
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+
+
+
         public MainWindow()
         {
             InitializeComponent();
@@ -140,6 +145,7 @@ namespace BRIE
             List<Shape> roads = geoJson.getRoads16();
             List<Ellipse> ellis = roads.OfType<Ellipse>().ToList();
             List<Rectangle> rects = roads.OfType<Rectangle>().ToList();
+            
             foreach (Shape road in ellis)
             {
                 geoRoadsCanvas.Children.Add(road);
@@ -148,6 +154,8 @@ namespace BRIE
             {
                 geoRoadsCanvas.Children.Add(road);
             }
+
+            
 
             //linesCanvas.Children.Clear();
             //foreach (Polyline pline in geoJson.GetPolys())

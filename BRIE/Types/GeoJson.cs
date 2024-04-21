@@ -11,7 +11,7 @@ using BRIE.Types;
 using ImageMagick;
 using Newtonsoft.Json;
 
-namespace BRIE
+namespace BRIE.Types
 {
     public class GeoJson
     {

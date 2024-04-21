@@ -3,8 +3,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Media.Media3D;
+using ShapesPolygon = System.Windows.Shapes.Polygon;
 
 namespace BRIE.Types
 {
@@ -57,5 +59,11 @@ namespace BRIE.Types
             _height = maxY - minY;
         }
 
+        private ShapesPolygon ToShapesPolygon()
+        {
+            ShapesPolygon spoly = new ShapesPolygon();
+            Points.ToList().ForEach(p => spoly.Points.Add(p));
+            return spoly;
+        }
     }
 }
