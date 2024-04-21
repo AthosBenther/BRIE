@@ -2,6 +2,7 @@
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Media;
+using BRIE.Classes.Statics;
 using Path = System.Windows.Shapes.Path;
 
 namespace BRIE.Etc

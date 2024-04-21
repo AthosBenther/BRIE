@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 
-namespace BRIE
+namespace BRIE.Classes.Statics
 {
     public class CacheData
     {
@@ -139,7 +139,7 @@ namespace BRIE
             RecentProjects = new Dictionary<DateTime, List<string>>();
             WindowSize = MainWindow.RenderSize;
             WindowPosition = new Point(MainWindow.Left, MainWindow.Top);
-            IsWindowMaximized = (MainWindow.WindowState == WindowState.Maximized);
+            IsWindowMaximized = MainWindow.WindowState == WindowState.Maximized;
 
             if (File.Exists(MainWindow.CacheFilePath))
             {

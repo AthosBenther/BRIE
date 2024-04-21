@@ -5,8 +5,9 @@ using System.Linq;
 using System.Reflection;
 using System.Windows;
 using BRIE.Types;
+using BRIE.Types.Geographics;
 
-namespace BRIE
+namespace BRIE.Classes.Statics
 {
     public class ProjectData : INotifyPropertyChanged
     {
@@ -175,7 +176,7 @@ namespace BRIE
 
 
 
-        
+
         #endregion
 
         #region Configs
@@ -218,11 +219,11 @@ namespace BRIE
         {
             if (Name == null)
             {
-                throw new System.Exception("The Loaded BRIE Project can't be saved: it's name is null");
+                throw new Exception("The Loaded BRIE Project can't be saved: it's name is null");
             }
             else if (ProjectPath == null)
             {
-                throw new System.Exception("The Loaded BRIE Project can't be saved: it's file path is null");
+                throw new Exception("The Loaded BRIE Project can't be saved: it's file path is null");
             }
             else
             {
@@ -258,6 +259,7 @@ namespace BRIE
         public static double TerrainElevationMin { get => Data?.TerrainElevationMin ?? 0; set { Data.TerrainElevationMin = value; } }
         public static double TerrainElevationMax { get => Data?.TerrainElevationMax ?? 0; set { Data.TerrainElevationMax = value; } }
         public static double TerrainElevationDelta => TerrainElevationMax - TerrainElevationMin;
+        public static double DefaultRoadWidth = 8;
 
         #endregion
 

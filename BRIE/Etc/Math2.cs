@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Windows;
-using BRIE.Types;
+using BRIE.Types.Geometry;
 
 namespace BRIE.Etc
 {
