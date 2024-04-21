@@ -11,14 +11,19 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using BRIE.Classes;
+using BRIE.Classes.RoadsSources;
+using BRIE.Classes.Statics;
 using BRIE.Dialogs;
 using BRIE.Etc;
 using BRIE.ExportFormats;
-using BRIE.Types;
 using Microsoft.Win32;
-using static BRIE.RoadsCollection;
+using static BRIE.Classes.RoadsCollection;
 using IOPath = System.IO.Path;
 using Path = System.Windows.Shapes.Path;
+
+
+[assembly: System.Reflection.Metadata.MetadataUpdateHandler(typeof(BRIE.MainWindow))]
 
 namespace BRIE
 {
@@ -26,10 +31,10 @@ namespace BRIE
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     /// 
-
-
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
+        public static event EventHandler HotReloaded;
+        public event PropertyChangedEventHandler? PropertyChanged;
         private GeoJson geoJson;
         public int canvasSize;
         public static string CacheFilePath = @"%APPDATA%\Local\BRIE\Cache.json";
@@ -39,24 +44,22 @@ namespace BRIE
 
         private ProjectData _projectData;
 
-        public event PropertyChangedEventHandler? PropertyChanged;
-
         public ProjectData? ProjectData
         {
             get
             {
-                return
-                    _projectData;
+                return _projectData;
             }
             set { _projectData = value; OnPropertyChanged(nameof(ProjectData)); }
         }
-        protected virtual void OnPropertyChanged(string propertyName)
+
+
+
+
+        public static void UpdateApplication(Type[]? types)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            HotReloaded?.Invoke(new object(), new EventArgs());
         }
-
-
-
 
         public MainWindow()
         {
@@ -65,6 +68,7 @@ namespace BRIE
             Output = new();
             CacheFilePath = Environment.ExpandEnvironmentVariables(CacheFilePath);
             sqBkDrop.Visibility = Visibility.Visible;
+            HotReloaded += MainWindow_HotReloaded;
 
             this.Loaded += (obj, e) =>
             {
@@ -104,6 +108,21 @@ namespace BRIE
             };
         }
 
+        private void MainWindow_HotReloaded(object? sender, EventArgs e)
+        {
+            if (geoJson != null)
+                this.Dispatcher.Invoke(() =>
+                {
+                    LoadRoadsHeightmap(geoJson);
+                });
+
+        }
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
         private void ResetUI()
         {
             tviProjectName.Header = "Unsaved Project";
@@ -118,7 +137,7 @@ namespace BRIE
             if (Project.GeoJsonPath != null)
             {
                 geoJson = new GeoJson(Project.GeoJsonPath, geoRoadsCanvas);
-                LoadGeoJson();
+                LoadRoadsHeightmap(geoJson);
             }
             if (Project.HeightmapPath != null) loadHeightmap(Project.HeightmapPath);
             if (Project.SatMapPath != null) loadSatMap(Project.SatMapPath);
@@ -137,66 +156,19 @@ namespace BRIE
             pdiag.ShowDialog();
         }
 
-        private void LoadGeoJson()
+        private void LoadRoadsHeightmap(RoadsSource roadsSource)
         {
-
+            roadsSource.ToRoadsCollection();
             geoRoadsCanvas.Children.Clear();
+            SetCanvasSize(Project.Resolution);
 
-            List<Shape> roads = geoJson.getRoads16();
-            List<Ellipse> ellis = roads.OfType<Ellipse>().ToList();
-            List<Rectangle> rects = roads.OfType<Rectangle>().ToList();
-            
-            foreach (Shape road in ellis)
+            List<Shape> roads = RoadsCollection.GetRoadsShapes();
+
+            foreach (Shape road in roads)
             {
                 geoRoadsCanvas.Children.Add(road);
             }
-            foreach (Shape road in rects)
-            {
-                geoRoadsCanvas.Children.Add(road);
-            }
-
-            
-
-            //linesCanvas.Children.Clear();
-            //foreach (Polyline pline in geoJson.GetPolys())
-            //{
-            //    linesCanvas.Children.Add(pline);
-            //}
-
-            //linesCanvas.Children.Clear();
-            //foreach (Path path in geoJson.GetPaths())
-            //{
-            //    linesCanvas.Children.Add(path);
-            //}
-
-            ExportToPng(geoRoadsCanvas, "C:\\Users\\athum\\AppData\\Local\\BeamNG.drive\\0.31\\levels\\franka-mini\\roadsele.png");
         }
-
-        public static void ExportToPng(Canvas canvas, string filePath)
-        {
-            // Ensure that the canvas is fully rendered before capturing it
-            canvas.Measure(new Size(canvas.ActualWidth, canvas.ActualHeight));
-            canvas.Arrange(new Rect(new Size(canvas.ActualWidth, canvas.ActualHeight)));
-
-            // Create a RenderTargetBitmap with the same size as the canvas
-            RenderTargetBitmap renderBitmap = new RenderTargetBitmap(
-                (int)canvas.ActualWidth, (int)canvas.ActualHeight,
-                96, 96, PixelFormats.Pbgra32);
-
-            // Render the canvas onto the RenderTargetBitmap
-            renderBitmap.Render(canvas);
-
-            // Create a PngBitmapEncoder and add the RenderTargetBitmap to it
-            PngBitmapEncoder encoder = new PngBitmapEncoder();
-            encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
-
-            // Save the encoded image to the file
-            using (FileStream fs = File.Create(filePath))
-            {
-                encoder.Save(fs);
-            }
-        }
-
 
         #region Files Stuff
 
@@ -213,7 +185,7 @@ namespace BRIE
                 if (Project.IsInitialized) Project.GeoJsonPath = selectedFilePath;
 
                 geoJson = new GeoJson(selectedFilePath, geoRoadsCanvas);
-                LoadGeoJson();
+                LoadRoadsHeightmap(geoJson);
             }
         }
 
@@ -242,7 +214,7 @@ namespace BRIE
                 bmi.EndInit();
 
                 hmCanvas.Background = new ImageBrush(bmi);
-                
+
             }
         }
 
@@ -270,15 +242,9 @@ namespace BRIE
         #endregion
 
         #region Export Files Stuff
-        private void ExportFileClick(object sender, RoutedEventArgs e)
+        private void ExportRoadsToHeightmap_Click(object sender, RoutedEventArgs e)
         {
-            Save16BitImage();
-        }
-
-        private void Save16BitImage()
-        {
-
-            ExportDialog exdiag = new ExportDialog(new RoadsCollection(geoJson))
+            ExportDialog exdiag = new ExportDialog()
             {
                 Owner = this,
                 WindowStartupLocation = WindowStartupLocation.CenterScreen,
@@ -290,17 +256,6 @@ namespace BRIE
             exdiag.ShowDialog();
 
             sqBkDrop.Visibility = Visibility.Collapsed;
-
-            //Roads r = new Roads(geoJson);
-            //string root = Directory.GetParent(Project.ProjectPath).FullName;
-            //var worker = Png16.RenderWorker(r);
-
-            //bgwpb.RunWorkerCompleted += (obj, arg) =>
-            //{
-            //    Png16.SaveImage();
-            //    Png16.SaveMaskImage();
-            //};
-            //bgwpb.RunWorkAsync(worker);
         }
         #endregion
 
@@ -345,7 +300,7 @@ namespace BRIE
 
                 if (geoJson != null)
                 {
-                    LoadGeoJson();
+                    LoadRoadsHeightmap(geoJson);
                 }
             }
         }

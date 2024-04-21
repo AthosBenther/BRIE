@@ -13,7 +13,7 @@ using BRIE.ExportFormats;
 using ImageMagick;
 using Newtonsoft.Json;
 
-namespace BRIE.Classes.RoadsSources
+namespace BRIE.Classes.Roads.Sources
 {
     public class GeoJson : RoadsSource
     {
