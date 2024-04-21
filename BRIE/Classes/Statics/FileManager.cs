@@ -4,8 +4,8 @@ using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
+using BRIE.Classes.Etc;
 using BRIE.Dialogs;
-using BRIE.Etc;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 

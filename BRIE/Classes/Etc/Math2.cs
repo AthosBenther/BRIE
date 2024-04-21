@@ -2,7 +2,7 @@
 using System.Windows;
 using BRIE.Types.Geometry;
 
-namespace BRIE.Etc
+namespace BRIE.Classes.Etc
 {
     public static class Math2
     {

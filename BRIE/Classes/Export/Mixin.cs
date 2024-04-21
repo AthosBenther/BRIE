@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BRIE.Export
+namespace BRIE.Classes.Export
 {
     class Mixin
     {

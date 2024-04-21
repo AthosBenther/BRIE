@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using BRIE.Etc;
+using BRIE.Classes.Etc;
 
 namespace BRIE.Types.Geographics
 {

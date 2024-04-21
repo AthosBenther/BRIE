@@ -7,13 +7,14 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Xml.Linq;
+using BRIE.Classes.Etc;
+using BRIE.Classes.Export;
+using BRIE.Classes.Roads.Collection;
 using BRIE.Classes.Statics;
-using BRIE.Etc;
-using BRIE.ExportFormats;
 using ImageMagick;
 using Newtonsoft.Json;
 
-namespace BRIE.Classes.RoadsSources
+namespace BRIE.Classes.Roads.Sources
 {
     public class GeoJson : RoadsSource
     {
