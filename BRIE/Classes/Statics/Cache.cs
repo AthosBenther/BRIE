@@ -26,11 +26,15 @@ namespace BRIE.Classes.Statics
         {
             get
             {
-                return Data.RecentProjects.OrderByDescending(pair => pair.Key).ToDictionary(x => x.Key, x => x.Value);
+                Dictionary<DateTime, List<string>> filteredData = Data.RecentProjects.OrderByDescending(pair => pair.Key).DistinctBy(pair => pair.Value[0]).ToDictionary(x => x.Key, x => x.Value);
+
+                //No fucking idea why it has to be done like that, but it fixees a bug,
+                //so DO NOT FUCKING TOUCH IT.
+                return Data.RecentProjects.Count == 0 ? Data.RecentProjects : filteredData;
             }
             set
             {
-                Data.RecentProjects = value.OrderByDescending(pair => pair.Key).ToDictionary(x => x.Key, x => x.Value);
+                Data.RecentProjects = value;
             }
         }
 
@@ -94,13 +98,6 @@ namespace BRIE.Classes.Statics
         {
             // Get the current date and time
             DateTime dateTime = DateTime.Now;
-
-            // Remove any recent project with the same name
-            var projectsToRemove = RecentProjects.Where(pair => pair.Value[0] == projectName).ToList();
-            foreach (var projectToRemove in projectsToRemove)
-            {
-                RecentProjects.Remove(projectToRemove.Key);
-            }
 
             // Add the new recent project
             RecentProjects.Add(dateTime, new List<string> { projectName, projectPath });
