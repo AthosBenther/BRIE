@@ -1,8 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using BRIE.Classes.Roads.Collection;
+using BRIE.Classes.Roads.Sources;
+using BRIE.Classes.Statics;
+using Newtonsoft.Json;
 
 namespace BRIE.Classes.RoadsSources
 {
@@ -14,11 +20,51 @@ namespace BRIE.Classes.RoadsSources
         public string attribution { get; set; }
         public string license { get; set; }
         public Bounds bounds { get; set; }
-        public Element[] elements { get; set; }
+        public List<Element> elements { get; set; }
 
         public override void ToRoadsCollection()
         {
-            throw new NotImplementedException();
+
+            //traffic_signals
+            //crossing
+            //motorway_junction
+            //stop
+            //turning_circle
+            //bus_stop
+            //primary_link
+            //residential
+            //primary
+            //tertiary
+            //pedestrian
+            //motorway_link
+            //secondary
+            //motorway
+            //tertiary_link
+            //service
+            //secondary_link
+            //footway
+            //steps
+            //living_street
+
+            RoadsCollection.All.Clear();
+            var ways = elements.Where(e => e.tags?.highway == "bus_stop").ToList();
+            //var tags = elements.Select(e => e.tags).DistinctBy(t => t?.highway?.ToString()).ToList();
+            ways.ForEach(way =>
+            {
+                Road road = new Road();
+                ObservableCollection<Node> ns = new ObservableCollection<Node>();
+                foreach (var node in way.nodes)
+                {
+                    var nodeElement = elements.Where(e => e.id == node).First();
+                    Point coords = new Point(nodeElement.lat, nodeElement.lon);
+                    Node Node = new Node(coords, 0, 2, road);
+                    ns.Add(Node);
+                }
+                road.Nodes = ns;
+                RoadsCollection.All.Add(road);
+            });
+
+
         }
 
         public class Bounds
@@ -31,6 +77,7 @@ namespace BRIE.Classes.RoadsSources
 
         public class Element
         {
+
             public string type { get; set; }
             public long id { get; set; }
             public float lat { get; set; }

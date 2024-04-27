@@ -11,6 +11,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using BRIE.Classes.Etc;
 using BRIE.Classes.Roads.Sources;
+using BRIE.Classes.RoadsSources;
 using BRIE.Classes.Statics;
 using BRIE.Dialogs;
 using Microsoft.Win32;
@@ -93,12 +94,19 @@ namespace BRIE
 
                 LocationChanged += Cache.WindowLocationChanged;
 
+
                 OpenProjectsDiag();
 
                 drawingCanvas.SizeChanged += DrawingCanvas_SizeChanged;
 
                 sqBkDrop.Visibility = Visibility.Collapsed;
             };
+        }
+
+        private void OpenOSM()
+        {
+            OsmJson Osm = FileManager.OpenJson<OsmJson>(@"C:\Users\athum\AppData\Local\BeamNG.drive\0.32\levels\franka-mini\map.osm.json");
+            LoadRoadsHeightmap(Osm);
         }
 
         private void MainWindow_HotReloaded(object? sender, EventArgs e)
@@ -446,6 +454,11 @@ namespace BRIE
         private void btnApplyRes_Click(object sender, RoutedEventArgs e)
         {
             Project.Resolution = int.Parse(txtResolution.Text);
+        }
+
+        private void ImportOSM_Click(object sender, RoutedEventArgs e)
+        {
+            OpenOSM();
         }
     }
 }

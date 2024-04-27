@@ -68,6 +68,8 @@ namespace BRIE.Classes.Roads.Sources
         {
 
         }
+
+        
         public GeoJson(string FileName, Canvas canvas)
         {
             var json = JsonConvert.DeserializeObject<GeoJson>(System.IO.File.ReadAllText(FileName));

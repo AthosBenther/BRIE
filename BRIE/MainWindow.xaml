@@ -27,11 +27,17 @@
                     <MenuItem Header="Save Project" Click="SaveProjectClick"/>
                 </MenuItem>
                 <MenuItem Header="Projects" Click="MenuProjects_Click"/>
+                <MenuItem Header="Import">
+                    <MenuItem Header="Roads...">
+                        <MenuItem Header="From OSM" Click="ImportOSM_Click"/>
+                    </MenuItem>
+                </MenuItem>
                 <MenuItem Header="Export">
                     <MenuItem Header="Roads...">
                         <MenuItem Header="To Heightmap" Click="ExportRoadsToHeightmap_Click"/>
                     </MenuItem>
                 </MenuItem>
+                
             </Menu>
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                 <Button x:Name="btnWinMin"      Width="32" Background="{x:Null}" BorderBrush="{x:Null}" Content="&#xE921;"  FontFamily="Segoe MDL2 Assets" Click="winBtn_Click"/>
