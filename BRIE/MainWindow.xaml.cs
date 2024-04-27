@@ -10,9 +10,11 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using BRIE.Classes.Etc;
+using BRIE.Classes.Roads.Collection;
 using BRIE.Classes.Roads.Sources;
 using BRIE.Classes.Statics;
 using BRIE.Dialogs;
+using BRIE.UI.Controls.RoadsEditor;
 using Microsoft.Win32;
 
 
@@ -155,12 +157,26 @@ namespace BRIE
             geoRoadsCanvas.Children.Clear();
             SetCanvasSize(Project.Resolution);
 
-            List<Shape> roads = RoadsCollection.GetRoadsShapes();
-
-            foreach (Shape road in roads)
+            foreach (Road road in RoadsCollection.All)
             {
-                geoRoadsCanvas.Children.Add(road);
+                for (int segIndex = 0; segIndex < road.Segments.Count; segIndex++)
+                {
+                    Segment segment = road.Segments[segIndex];
+                    Shape shape = segment.Shape;
+                    Brush originColor = segment.Shape.Fill;
+                    shape.MouseDown += (o, e) => Road_MouseDown(o, e, segment, segIndex);
+
+                    shape.MouseEnter += (e, o) => shape.Fill = Brushes.Red;
+                    shape.MouseLeave += (e, o) => shape.Fill = originColor;
+
+                    geoRoadsCanvas.Children.Add(shape);
+                }
             }
+        }
+
+        private void Road_MouseDown(object sender, MouseButtonEventArgs e, Segment segment, int segIndex)
+        {
+            txtNodeInfo.Text = segment.Parent.Name + "\n" + segIndex;
         }
 
         #region Files Stuff
@@ -284,9 +300,9 @@ namespace BRIE
                 canvas.Height = h;
                 canvas.Width = h;
 
-                foreach (Canvas i in drawingCanvas.Children)
+                foreach (Canvas canvasChild in drawingCanvas.Children)
                 {
-                    i.Height = i.Width = h;
+                    canvasChild.Height = canvasChild.Width = h;
                 }
 
                 geoRoadsCanvas.Children.Clear();
@@ -446,6 +462,25 @@ namespace BRIE
         private void btnApplyRes_Click(object sender, RoutedEventArgs e)
         {
             Project.Resolution = int.Parse(txtResolution.Text);
+        }
+
+        private void Editor_Click(object sender, RoutedEventArgs e)
+        {
+
+            editorCanvas.Children.Clear();
+
+            editorCanvas.Background = Brushes.Transparent;
+
+            foreach (Road road in RoadsCollection.All)
+            {
+                for (int segIndex = 0; segIndex < road.Segments.Count; segIndex++)
+                {
+                    Segment segment = road.Segments[segIndex];
+                    //EditorSegment es = new EditorSegment(segment);                    
+
+                    editorCanvas.Children.Add(new EditorSegment(segment));
+                }
+            }
         }
     }
 }

@@ -93,6 +93,9 @@ namespace BRIE.Classes.Roads.Sources
                 {
 
                     Road r = new Road();
+                    r.Name = feature.Properties.Name;
+                    r.ID = feature.Properties.Osm_id.ToString();
+
                     ObservableCollection<Node> ns = new ObservableCollection<Node>();
                     feature.Geometry.Coordinates.ForEach(C => C.ForEach(c => ns.Add(new Node(new Point(c[0], c[1]), c[2], Project.DefaultRoadWidth, r))));
                     r.Nodes = ns;

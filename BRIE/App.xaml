@@ -8,7 +8,7 @@
             <!-- Other resource dictionaries if any -->
             <ResourceDictionary.MergedDictionaries>
                 <!-- Merge your CustomResources.xaml file here -->
-                <ResourceDictionary Source="Resources/TreeViewItem.xaml"/>
+                <ResourceDictionary Source="UI/Resources/TreeViewItem.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

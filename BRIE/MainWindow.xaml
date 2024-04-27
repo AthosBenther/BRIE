@@ -32,6 +32,7 @@
                         <MenuItem Header="To Heightmap" Click="ExportRoadsToHeightmap_Click"/>
                     </MenuItem>
                 </MenuItem>
+                <MenuItem Header="Editor" Click="Editor_Click"/>
             </Menu>
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                 <Button x:Name="btnWinMin"      Width="32" Background="{x:Null}" BorderBrush="{x:Null}" Content="&#xE921;"  FontFamily="Segoe MDL2 Assets" Click="winBtn_Click"/>
@@ -71,7 +72,7 @@
                                             <StackPanel Margin="0 0 6 0">
                                                 <TreeViewItem  BorderThickness="0" IsExpanded="True" >
                                                     <TreeViewItem.Header>
-                                                        <Controls:CanvasLayerControl x:Name="clcRoads" Margin="0 2 0 0" CanOpenFile="False" CanExportFile="False" CanSaveFile="False" Label="Roads" TargetCanvas="{Binding ElementName=linesCanvas}"/>
+                                                        <Controls:CanvasLayerControl x:Name="clcRoads" Margin="0 2 0 0" CanOpenFile="False" CanExportFile="False" CanSaveFile="False" Label="Roads" TargetCanvas="{Binding ElementName=editorCanvas}"/>
                                                     </TreeViewItem.Header>
                                                     <StackPanel Name="stkRoads" Margin="1 0 0 0">
                                                         <Controls:CanvasLayerControl Margin="0 2 0 0"  CanSaveFile="False" CanExportFile="False" Label="Heightmap" TargetCanvas="{Binding ElementName=geoRoadsCanvas}" OpenFileClick="OpenGeoJSON_Click"/>
@@ -180,7 +181,7 @@
                     <StackPanel Margin="1" Grid.Row="1" Grid.ColumnSpan="2" Background="Transparent">
                         <TreeView Background="WhiteSmoke" BorderBrush="{x:Null}">
                             <TreeViewItem HorizontalAlignment="Stretch" Header="Node" BorderThickness="0" IsExpanded="True">
-                                <TextBlock Text="alala"/>
+                                <TextBlock Name="txtNodeInfo" Text="alala"/>
                             </TreeViewItem>
                         </TreeView>
 
@@ -214,12 +215,12 @@
             <ScrollViewer x:Name="scrl" VerticalScrollBarVisibility="auto" HorizontalScrollBarVisibility="auto">
                 <Grid>
                     <Canvas x:Name="drawingCanvas" MouseUp="drawingCanvas_MouseUp" MouseDown="drawingCanvas_MouseDown" MouseWheel="Canvas_MouseWheel" Background="Transparent" Width="1024" Height="1024" HorizontalAlignment="Center" VerticalAlignment="Center" MouseMove="drawingCanvas_MouseMove">
-                        <Canvas x:Name="bgCanvas"           Width="1024" Height="1024" Background="#FFE2E2E2"/>
-                        <Canvas x:Name="smCanvas"           Width="1024" Height="1024" Background="Transparent"/>
-                        <Canvas x:Name="hmCanvas"           Width="1024" Height="1024" Background="Transparent"/>
-                        <Canvas x:Name="geoRoadsCanvas"     Width="1024" Height="1024" Background="Transparent"/>
-                        <Canvas x:Name="gameRoadsCanvas"    Width="1024" Height="1024" Background="Transparent"/>
-                        <Canvas x:Name="linesCanvas" Width="1024" Height="1024"/>
+                        <Canvas x:Name="bgCanvas"           IsHitTestVisible="False" Width="1024" Height="1024" Background="#FFE2E2E2"/>
+                        <Canvas x:Name="smCanvas"           IsHitTestVisible="False" Width="1024" Height="1024" Background="Transparent"/>
+                        <Canvas x:Name="hmCanvas"           IsHitTestVisible="False" Width="1024" Height="1024" Background="Transparent"/>
+                        <Canvas x:Name="geoRoadsCanvas"     IsHitTestVisible="True"  Width="1024" Height="1024" Background="Transparent"/>
+                        <Canvas x:Name="gameRoadsCanvas"    IsHitTestVisible="False" Width="1024" Height="1024" Background="Transparent"/>
+                        <Canvas x:Name="editorCanvas"       IsHitTestVisible="False" Width="1024" Height="1024"/>
                     </Canvas>
                 </Grid>
             </ScrollViewer>
