@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -70,7 +71,13 @@ namespace BRIE.Classes.Roads.Sources
         }
         public GeoJson(string FileName, Canvas canvas)
         {
-            var json = JsonConvert.DeserializeObject<GeoJson>(System.IO.File.ReadAllText(FileName));
+            using var fs = new FileStream(
+                FileName,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.ReadWrite); // allow others to read/write too
+            using var sr = new StreamReader(fs);
+            var json = JsonConvert.DeserializeObject<GeoJson>(sr.ReadToEnd());
             Type = json.Type;
             Name = json.Name;
             Crs = json.Crs;

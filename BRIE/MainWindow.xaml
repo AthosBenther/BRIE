@@ -152,8 +152,8 @@
                                                             <ColumnDefinition Width="Auto"/>
                                                             <ColumnDefinition Width="Auto"/>
                                                         </Grid.ColumnDefinitions>
-                                                        <TextBlock Text="West" Grid.ColumnSpan="3"/>
-                                                        <TextBox Text="{Binding ProjectData.Extents.West}" HorizontalAlignment="Left" Grid.Column="1" MinWidth="128" InputScope="Number"/>
+                                                        <TextBlock Text="South" Grid.ColumnSpan="3"/>
+                                                        <TextBox Text="{Binding ProjectData.Extents.South}" HorizontalAlignment="Left" Grid.Column="1" MinWidth="128" InputScope="Number"/>
                                                     </Grid>
                                                 </TreeViewItem>
                                             </StackPanel>
