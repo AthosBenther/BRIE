@@ -66,7 +66,7 @@ namespace BRIE
             this.Loaded += (obj, e) =>
             {
                 Output.WriteLine("MainWindow started");
-                if (Keyboard.IsKeyDown(Key.LeftShift)) // Check if the 'A' key is pressed
+                if (Keyboard.IsKeyDown(Key.LeftShift)) // Check if the 'Left Shift' key is pressed
                 {
                     MessageBoxResult res = MessageBox.Show("Do you want to delete the cache?", "BRIE Recovery Mode", MessageBoxButton.YesNo);
                     if (res == MessageBoxResult.Yes)
